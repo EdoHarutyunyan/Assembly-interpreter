@@ -11,9 +11,11 @@ public:
 	VM();
 	~VM();
 
+	void Start(std::vector<BaseCommand*> ast);
+
 private:
 	processor::Processor* procc;
-	memory::Memory* memory;
+	memory::Memory* mem;
 };
 
 }//namespace virtualmachine

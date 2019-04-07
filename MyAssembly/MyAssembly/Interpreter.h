@@ -8,12 +8,14 @@ namespace interpreter
 class Interpreter
 {
 public:
-	Interpreter();
+	Interpreter(std::string asmName);
 	~Interpreter();
 
+	void Start();
+
 private:
-	virtualmachine::VM* vm;
 	fileio::FileIO* ASM;
+	virtualmachine::VM* vm;
 };
 
 }//namespace interpreter

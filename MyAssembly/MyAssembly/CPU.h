@@ -1,24 +1,42 @@
 #pragma once
-#include "Commands.h"
-#include "Registers.h"
+#include "Command.h"
+#include "DataRegisters.h"
+#include "StatusRegisters.h"
+#include "AddressRegisters.h"
+
 #include <vector>
 
-namespace cpu
-{
+class CommandNode;
 
 class CPU
 {
 public:
 	CPU();
-	~CPU();
+	~CPU() = default;
 
-	std::vector<Command*> Tokenizer(std::vector<std::string> file);
+	void add(const CommandNode& comNode);
+	void sub(const CommandNode& comNode);
+	void mul(const CommandNode& comNode);
+	void div(const CommandNode& comNode);
+	void cmp(const CommandNode& comNode);
+	void deg(const CommandNode& comNode);
+	void mov(const CommandNode& comNode);
+	void test(const CommandNode& comNode);
+
+
+	void print(const CommandNode& comNode);
+	void assign(const CommandNode& comNode);
+	void load(const CommandNode& comNode);
+	void store(const CommandNode& comNode);
+
+	void setIp(const size_t newIp);
+
+	std::vector<bool> getStFlag() const;
+
+	size_t m_ip;
 
 private:
-	Registers m_CPUregisters;
-	std::vector<Command*> m_commands;
+	DataRegisters m_CPUdataRegisters;
+	StatusRegisters m_CPUstatusRegisters;
+	AddressRegisters m_CPUaddressRegisters;
 };
-
-void split(const std::string& line, std::vector<std::string>& res);
-
-}//namespace cpu
