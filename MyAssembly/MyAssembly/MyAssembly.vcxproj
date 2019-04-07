@@ -76,6 +76,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -115,25 +116,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Commands.cpp" />
+    <ClCompile Include="Command.cpp" />
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="FileIO.cpp" />
     <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="Processor.cpp" />
-    <ClCompile Include="Registers.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AddressRegisters.h" />
+    <ClInclude Include="BaseCommand.h" />
+    <ClInclude Include="CommandNode.h" />
     <ClInclude Include="Command.h" />
-    <ClInclude Include="Commands.h" />
     <ClInclude Include="CPU.h" />
+    <ClInclude Include="decl.h" />
     <ClInclude Include="FileIO.h" />
     <ClInclude Include="Interpreter.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="Processor.h" />
-    <ClInclude Include="Registers.h" />
+    <ClInclude Include="DataRegisters.h" />
+    <ClInclude Include="StatusRegisters.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
