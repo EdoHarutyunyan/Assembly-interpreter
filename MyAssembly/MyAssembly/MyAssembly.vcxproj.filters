@@ -24,9 +24,6 @@
     <ClCompile Include="VM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileIO.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,15 +36,24 @@
     <ClCompile Include="Command.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Compiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Code.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interpreter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VM.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileIO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Processor.h">
@@ -78,6 +84,21 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Command.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Compiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Type.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Code.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

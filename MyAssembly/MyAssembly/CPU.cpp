@@ -361,7 +361,7 @@ void CPU::mov(const CommandNode& comNode)
 
 		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
 		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		*qw1 += *qw2;
+		*qw1 = *qw2;
 	}
 }
 
@@ -406,7 +406,7 @@ void CPU::assign(const CommandNode& comNode)
 	{
 		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
 		byte temp = *b1;//statusflags
-		*b1 += comNode.m_operand[1];
+		*b1 = comNode.m_operand[1];
 	}
 	else if (comNode.m_opsize == "W")
 	{
@@ -415,7 +415,7 @@ void CPU::assign(const CommandNode& comNode)
 		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
 		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
 		word temp = *w1;//statusflags
-		*w1 += comNode.m_operand[1];
+		*w1 = comNode.m_operand[1];
 	}
 	else if (comNode.m_opsize == "DW")
 	{
@@ -424,7 +424,7 @@ void CPU::assign(const CommandNode& comNode)
 		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
 		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
 		dword temp = *dw1;
-		*dw1 += comNode.m_operand[1];
+		*dw1 = comNode.m_operand[1];
 	}
 	else if (comNode.m_opsize == "QW")
 	{
@@ -433,7 +433,7 @@ void CPU::assign(const CommandNode& comNode)
 		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
 		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
 		qword temp = *qw1;
-		*qw1 += comNode.m_operand[1];
+		*qw1 = comNode.m_operand[1];
 	}
 }
 

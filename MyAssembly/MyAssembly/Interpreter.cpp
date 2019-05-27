@@ -7,21 +7,19 @@
 namespace interpreter
 {
 
-Interpreter::Interpreter(std::string asmName)
-	: ASM{new fileio::FileIO(asmName)}
-	, vm{new virtualmachine::VM()}
+Interpreter::Interpreter()
+	: vm{new virtualmachine::VM()}
 {
 }
 
 Interpreter::~Interpreter()
 {
-	delete ASM;
 	delete vm;
 }
 
 void Interpreter::Start()
 {
-	vm->Start(ASM->Tokenizer(ASM->ReadFromFile()));
+	//vm->Start(ASM->Tokenizer(ASM->ReadFromFile()));
 }
 
 }//namespace interpreter

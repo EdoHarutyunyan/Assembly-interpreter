@@ -5,11 +5,10 @@ namespace virtualmachine
 {
 
 VM::VM()
-	: procc{ new processor::Processor() }
+	: procc{new processor::Processor()}
 	, mem{new memory::Memory()}
 {
 }
-
 
 VM::~VM()
 {
@@ -23,4 +22,3 @@ void VM::Start(std::vector<BaseCommand*> ast)
 }
 
 }//namespace virtualmachine
-

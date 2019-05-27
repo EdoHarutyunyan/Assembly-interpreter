@@ -3,9 +3,8 @@
 #include <vector>
 #include <sstream>
 
-class CommandNode
+struct CommandNode
 {
-public:
 	CommandNode(std::string com, std::string opsize = "DW")
 		: m_command{ com }
 		, m_opsize{ opsize }
@@ -65,7 +64,7 @@ public:
 	}
 
 	~CommandNode() = default;
-
+	
 	std::string m_command;
 	std::vector<int> m_operand;
 	std::string m_opsize;

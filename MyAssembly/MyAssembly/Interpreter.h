@@ -1,6 +1,8 @@
 #pragma once
+
 #include "VM.h"
-#include "FileIO.h"
+#include "FileManager.h"
+//#include "Code.h"
 
 namespace interpreter
 {
@@ -8,14 +10,14 @@ namespace interpreter
 class Interpreter
 {
 public:
-	Interpreter(std::string asmName);
+	Interpreter();
 	~Interpreter();
 
 	void Start();
 
 private:
-	fileio::FileIO* ASM;
 	virtualmachine::VM* vm;
+	//std::vector<code::Code> dataStructure;
 };
 
 }//namespace interpreter

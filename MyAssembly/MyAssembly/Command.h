@@ -1,7 +1,9 @@
 #pragma once
+
 #include "BaseCommand.h"
-#include <map>
 #include "CommandNode.h"
+
+#include <map>
 
 namespace command
 {

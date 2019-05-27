@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace memory
 {
 
@@ -10,7 +12,7 @@ public:
 	~Memory();
 
 private:
-	char* stack;
+	std::vector<int64_t> m_RAM;
 };
 
 }//namespace memory

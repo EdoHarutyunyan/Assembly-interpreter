@@ -1,9 +1,24 @@
-ASSIGN DW R0 10
-ASSIGN DW R4 20
-MOV DW R0 R4
-JNZ label:
-ADD DW R0 R4
-ADD DW R0 R4
-ADD DW R0 R4
-label:
-PRINT DW R0
+.STACK = 1024
+
+.DATA
+WORD a = 0x3ae
+WORD b 
+DWORD c = 54
+WORD d[] = 98,15,25
+CHAR str1[12] = "Hello World"
+QWORD f = 1000
+CHAR str2[] = "sadasd"
+CHAR simbol = 's'
+
+.CODE
+Func Print;
+Func Check;
+
+Func Start:
+    ASSIGN A4 str1
+    ASSIGN A5 Print
+    CALL A5
+    RET
+EndF
+
+.START = MAIN
