@@ -1,24 +1,29 @@
 .STACK = 1024
 
 .DATA
-WORD a = 0x3ae
-WORD b 
-DWORD c = 54
-WORD d[] = 98,15,25
-CHAR str1[12] = "Hello World"
-QWORD f = 1000
-CHAR str2[] = "sadasd"
-CHAR simbol = 's'
+BYTE x = 3
+BYTE b = 20
+DWORD sas[56] = 45,87,200,15
+QWORD q
+CHAR str1[] = "HELLO WORLD"
+CHAR c = 's'
+BYTE a = 0x3ae
 
 .CODE
 Func Print;
 Func Check;
 
 Func Start:
-    ASSIGN A4 str1
-    ASSIGN A5 Print
+    ASSIGN BYTE A4 x
+    ASSIGN BYTE A6 b
+    ASSIGN BYTE A5 Print
+    LOAD BYTE R0 A4
+    LOAD BYTE R8 A6
+    ADD BYTE R0 R8
+    STORE BYTE R0 A4
+
     CALL A5
     RET
-EndF
+END
 
 .START = MAIN

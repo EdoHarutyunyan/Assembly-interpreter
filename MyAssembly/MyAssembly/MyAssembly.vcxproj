@@ -120,26 +120,29 @@
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="CPU.cpp" />
+    <ClCompile Include="ExecutionManager.cpp" />
     <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="Interpreter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Processor.cpp" />
+    <ClCompile Include="StatusRegisters.cpp" />
+    <ClCompile Include="Type.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AddressRegisters.h" />
-    <ClInclude Include="BaseCommand.h" />
     <ClInclude Include="Code.h" />
-    <ClInclude Include="CommandNode.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Compiler.h" />
     <ClInclude Include="CPU.h" />
     <ClInclude Include="decl.h" />
+    <ClInclude Include="ExecutionManager.h" />
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="Interpreter.h" />
     <ClInclude Include="Memory.h" />
+    <ClInclude Include="ParsedFile.h" />
     <ClInclude Include="Parser.h" />
     <ClInclude Include="Processor.h" />
     <ClInclude Include="DataRegisters.h" />

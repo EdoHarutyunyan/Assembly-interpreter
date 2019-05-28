@@ -1,24 +1,22 @@
 #include "VM.h"
-#include "CommandNode.h"
 
 namespace virtualmachine
 {
-
-VM::VM()
-	: procc{new processor::Processor()}
-	, mem{new memory::Memory()}
+VM::VM(const ParsedFile& parsedFile)
+	: m_memory{ new memory::Memory{parsedFile.stackSize, parsedFile.dataStorage } }
+	, m_proccessor{ new processor::Processor{parsedFile.instruction, m_memory} }
 {
 }
 
 VM::~VM()
 {
-	delete procc;
-	delete mem;
+	delete m_memory;
+	delete m_proccessor;
 }
 
-void VM::Start(std::vector<BaseCommand*> ast)
+void VM::Start(const size_t entryPoint)
 {
-	procc->Execute(ast);
+	m_proccessor->Execute(entryPoint);
 }
 
 }//namespace virtualmachine

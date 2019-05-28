@@ -1,4 +1,6 @@
 #include "Compiler.h"
+#include "Interpreter.h"
+
 #include <iostream>
 
 namespace compiler
@@ -21,12 +23,9 @@ void Compiler::Start()
 	m_parser->Start(m_fileManager->ReadFromFile());
 }
 
-void Compiler::print()
+ParsedFile Compiler::getParsingResult() const
 {
-	std::vector<byte> x = m_parser->getDataStorage();
-
-	word* p = reinterpret_cast<word*>(&x[0]);
-	std::cout << *p << std::endl;
+	return m_parser->getResult();
 }
 
 }//namespace compiler

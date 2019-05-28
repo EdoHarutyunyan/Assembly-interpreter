@@ -14,8 +14,7 @@ public:
 	~Compiler();
 
 	void Start();
-	void print();
-	//SendParsedFile()
+	ParsedFile getParsingResult() const;
 
 private:
 	filemanager::FileManager* m_fileManager;

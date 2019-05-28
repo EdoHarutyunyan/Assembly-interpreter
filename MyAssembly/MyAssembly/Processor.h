@@ -1,6 +1,7 @@
 #pragma once
+
 #include "CPU.h"
-#include "CommandNode.h"
+#include "Code.h"
 
 namespace processor
 {
@@ -8,14 +9,14 @@ namespace processor
 class Processor
 {
 public:
-	Processor();
+	Processor(std::vector<code::Code> instruction, memory::Memory* ram);
 	~Processor();
 
-	void Execute(std::vector<BaseCommand*> ast);
+	void Execute(size_t entryPoint);
 
 private:
 	CPU* m_cpu;
-	//std::vector<Command*> AST;
+	std::vector<code::Code> m_instruction;
 };
 
 }//namespace processor 

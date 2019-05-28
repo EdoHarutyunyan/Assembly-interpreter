@@ -15,11 +15,8 @@ namespace parser
 using namespace type;
 
 Parser::Parser()
-	: m_stackSize{}
-	, m_dataStorage(1024)
+	: m_result{}
 	, m_offset{}
-	, m_instruction{}
-	, m_entryPoint{}
 {
 }
 
@@ -42,7 +39,7 @@ void Parser::StackSizeParser(const std::string& stackSizeSegment)
 {
 	size_t pos = stackSizeSegment.find_last_of(' ');
 	size_t count = stackSizeSegment.length() - pos;
-	m_stackSize = std::atoi(stackSizeSegment.substr(pos, count).c_str());
+	m_result.stackSize = std::atoi(stackSizeSegment.substr(pos, count).c_str());
 }
 
 void Parser::DataParser(const std::vector<std::string>& dataSegment)
@@ -61,7 +58,12 @@ void Parser::EntryPointParser(const std::string& entryPointSegment)
 {
 	size_t pos = entryPointSegment.find_last_of(' ');
 	size_t count = entryPointSegment.length() - pos;
-	m_entryPoint = std::atoi(entryPointSegment.substr(pos, count).c_str());
+	m_result.entryPoint = std::atoi(entryPointSegment.substr(pos, count).c_str());
+}
+
+ParsedFile Parser::getResult() const
+{
+	return m_result;
 }
 
 void Parser::DevideIntoParts(
@@ -121,12 +123,12 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	{
 		if (tokens.size() > 2)// if given initial value
 		{
-			std::string initialString = tokens[3].substr(1, tokens[3].length() - 2);// delete '' and ""
+			std::string initialString = tokens[3].substr(1, tokens[3].length() - 2); // delete '' and ""
 
-			//initialize by value
+			//initialize by given value
 			for (size_t i = 0; i < initialString.length(); ++i)
 			{
-				byte* b = &m_dataStorage[m_offset];
+				byte* b = &m_result.dataStorage[m_offset];
 
 				*b = initialString[i];
 				m_offset += sizeof(byte);
@@ -143,10 +145,10 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 	case Type::BYTE:
 	{
-		//initialize by value
+		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			byte* b = &m_dataStorage[m_offset];
+			byte* b = &m_result.dataStorage[m_offset];
 			*b = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(byte);
 		}
@@ -156,7 +158,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			byte* b = &m_dataStorage[m_offset];
+			byte* b = &m_result.dataStorage[m_offset];
 			*b = 0;
 			m_offset += sizeof(byte);
 		}
@@ -165,10 +167,10 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 	case Type::WORD:
 	{
-		//initialize by value
+		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			word* w = reinterpret_cast<word*>(&m_dataStorage[m_offset]);
+			word* w = reinterpret_cast<word*>(&m_result.dataStorage[m_offset]);
 			*w = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(word);
 		}
@@ -178,7 +180,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			word* w = reinterpret_cast<word*>(&m_dataStorage[m_offset]);
+			word* w = reinterpret_cast<word*>(&m_result.dataStorage[m_offset]);
 			*w = 0;
 			m_offset += sizeof(word);
 		}
@@ -187,10 +189,10 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 	case Type::DWORD:
 	{
-		//initialize by value
+		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			dword* d = reinterpret_cast<dword*>(&m_dataStorage[m_offset]);
+			dword* d = reinterpret_cast<dword*>(&m_result.dataStorage[m_offset]);
 			*d = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(dword);
 		}
@@ -200,7 +202,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			dword* d = reinterpret_cast<dword*>(&m_dataStorage[m_offset]);
+			dword* d = reinterpret_cast<dword*>(&m_result.dataStorage[m_offset]);
 			*d = 0;
 			m_offset += sizeof(dword);
 		}
@@ -209,10 +211,10 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 	case Type::QWORD:
 	{
-		//initialize by value
+		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			qword* q = reinterpret_cast<qword*>(&m_dataStorage[m_offset]);
+			qword* q = reinterpret_cast<qword*>(&m_result.dataStorage[m_offset]);
 			*q = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(qword);
 		}
@@ -222,7 +224,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			qword* q = reinterpret_cast<qword*>(&m_dataStorage[m_offset]);
+			qword* q = reinterpret_cast<qword*>(&m_result.dataStorage[m_offset]);
 			*q = 0;
 			m_offset += sizeof(qword);
 		}
@@ -271,8 +273,10 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 	std::map<std::string, size_t> commandMap;
 	mapInit(commandMap);
 
-	std::set<std::string /*name*/> f_declaration;
-	std::unordered_map<std::string /*name*/, size_t /*index*/> f_definition;
+	std::set<std::string /*name*/> funcDeclaration;
+	std::unordered_map<std::string /*name*/, size_t /*index*/> funcDefinition;
+
+	std::map<std::string /*labelName*/, size_t /*index*/> labels;
 
 	size_t instructionIndex = 0;
 
@@ -280,106 +284,353 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 	{
 		split(codeSegment[i], tokens);
 
-		if (tokens[0] == "Func")
+		if (tokens[0] == "Func") // Is Function
 		{
 			if (tokens[1].back() == ';') // declaration
 			{
-				f_declaration.insert(tokens[1]);
-				break;
+				tokens[1].pop_back();
+				funcDeclaration.insert(tokens[1]);
 			}
 			else // definition
 			{
-				auto it = f_definition.find(tokens[1]);
+				auto it = funcDefinition.find(tokens[1]);
 
-				if (it != f_definition.end())
+				if (it != funcDefinition.end())
 				{
-					it->second = i;
-					break;
+					//if operand is a function definition and was declared earlier
+					m_result.instruction[it->second].setrOper(i);
 				}
-
-				f_declaration.insert({ tokens[1], i });
+				else
+				{
+					tokens[1].pop_back();
+					funcDefinition.insert({ tokens[1], i });
+				}
 			}
+			tokens.clear();
+			continue;
 		}
 
-		auto table_it = type::type_table.find(tokens[2]);
-		auto dec_it = f_declaration.find(tokens[2]);
-		auto def_it = f_definition.find(tokens[2]);
-
-		size_t lOperand;
-		size_t rOperand;
-
-		switch (commandMap[tokens[0]])
+		if (char lastChar = tokens[0].at(tokens[0].length() - 1); lastChar == ':') // Is Label
 		{
+			auto it = labels.find(tokens[0]);
+			if (it != labels.end())
+			{
+				//if operand is a label and was declared earlier
+				m_result.instruction[it->second].setlOper(i);
+			}
+			else
+			{
+				labels.insert({tokens[0], i});
+			}
+			continue;
+		}
+
+		switch (commandMap[tokens[0]]) // Is Command
+		{
+		//case commandKeys::eNOP:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eNOP);
+		//	break;
+		//}
+		//case commandKeys::eBREAK:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eBREAK);
+		//	break;
+		//}
+		case commandKeys::eEND:
+		{
+			m_result.instruction.push_back(code::Code(eEND));
+			break;
+		}
+		case commandKeys::eJUMP:
+		{
+			m_result.instruction.push_back(code::Code(eJUMP));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			break;
+		}
+		case commandKeys::eCALL:
+		{
+			m_result.instruction.push_back(code::Code(eCALL, tokens[1]));
+			break;
+		}
+		case commandKeys::eRET:
+		{
+			m_result.instruction.push_back(code::Code(eRET));
+			break;
+		}
+		//case commandKeys::eGFLR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eGFLR);
+		//	break;
+		//}
+		//case commandKeys::eSFLR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eSFLR);
+		//	break;
+		//}
+		case commandKeys::eLOAD:
+		{
+			m_result.instruction.push_back(code::Code(eLOAD));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			break;
+		}
+		case commandKeys::eSTORE:
+		{
+			m_result.instruction.push_back(code::Code(eSTORE));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			break;
+		}
+		//case commandKeys::eLDREL:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eLDREL);
+		//	break;
+		//}
+		//case commandKeys::eSTREL:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eSTREL);
+		//	break;
+		//}
+		//case commandKeys::ePUSHSF:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, ePUSHSF);
+		//	break;
+		//}
+		//case commandKeys::ePUSHA:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, ePUSHA);
+		//	break;
+		//}
+		//case commandKeys::ePOP:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, ePOP);
+		//	break;
+		//}
 		case commandKeys::eASSIGN:
 		{
-			if ((table_it != type::type_table.end()
-				&& dec_it != f_declaration.end())
-			 || (table_it != type::type_table.end()
-				&& def_it != f_definition.end()))
-			{
-				throw std::invalid_argument(tokens[2] + ": redefinition");
-			}
-			if (table_it != type::type_table.end())
-			{
-				rOperand = table_it->second;
-			}
-			else if (def_it != f_definition.end()) 
-			{
-				rOperand = def_it->second;
-			}
-			else if (dec_it != f_declaration.end())
-			{
-				f_definition.insert({ tokens[2], i });
-			}
-			else 
-			{
-				std::stringstream ss;
-				char c;
-				ss << tokens[2];
-				ss >> c;
-				ss >> rOperand;
-				if (c == 'A')
-				{
-					rOperand += code::addressRegsStartPos;
-				}
-			}
-			//else
-			//{
-			//	throw std::invalid_argument(tokens[2] + ": undeclared identifier");
-			//}
+			m_result.instruction.push_back(code::Code(eASSIGN));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
-			//m_instruction.push_back(code::Code(tokens[2], tokens[3]),tokens[1]);//string mek el DW verjum by default
+		//case commandKeys::eSET:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eSET);
+		//	break;
+		//}
+		//case commandKeys::eMOVE:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eMOVE);
+		//	break;
+		//}
+		//case commandKeys::eSWAP:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eSWAP);
+		//	break;
+		//}
+		//case commandKeys::eINC:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eINC);
+		//	break;
+		//}
+		//case commandKeys::eDEC:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eDEC);
+		//	break;
+		//}
+		//case commandKeys::eTEST:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eTEST);
+		//	break;
+		//}
+		//case commandKeys::eCMP:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eCMP);
+		//	break;
+		//}
+		//case commandKeys::eIN:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eIN);
+		//	break;
+		//}
+		//case commandKeys::eOUT:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eOUT);
+		//	break;
+		//}
+		//case commandKeys::eAND:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eAND);
+		//	break;
+		//}
+		//case commandKeys::eOR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eOR);
+		//	break;
+		//}
+		//case commandKeys::eXOR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eXOR);
+		//	break;
+		//}
+		//case commandKeys::eNAND:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eNAND);
+		//	break;
+		//}
+		//case commandKeys::eNOR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eNOR);
+		//	break;
+		//}
+		//case commandKeys::eNOT:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eNOT);
+		//	break;
+		//}
+		//case commandKeys::eSHL:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eSHL);
+		//	break;
+		//}
+		//case commandKeys::eSHR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eSHR);
+		//	break;
+		//}
+		//case commandKeys::eROL:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eROL);
+		//	break;
+		//}
+		//case commandKeys::eROR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eROR);
+		//	break;
+		//}
+		//case commandKeys::eSAL:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eSAL);
+		//	break;
+		//}
+		//case commandKeys::eSAR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eSAR);
+		//	break;
+		//}
+		//case commandKeys::eRCL:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eRCL);
+		//	break;
+		//}
+		//case commandKeys::eRCR:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eRCR);
+		//	break;
+		//}
 		case commandKeys::eADD:
 		{
-
-			//m_instruction.push_back(code::Code({ tokens[2], tokens[3]) }, tokens[1]);//string mek el DW verjum by default
+			m_result.instruction.push_back(code::Code(eADD));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
-		case commandKeys::eCMP:
+		case commandKeys::eADC:
+		{
+			m_result.instruction.push_back(code::Code(eADC));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
+		}
+		case commandKeys::eSUB:
+		{
+			m_result.instruction.push_back(code::Code(eSUB));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			break;
+		}
+		case commandKeys::eSBB:
+		{
+			m_result.instruction.push_back(code::Code(eSBB));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			break;
+		}
+		case commandKeys::eMUL:
+		{
+			m_result.instruction.push_back(code::Code(eMUL));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			break;
+		}
+		case commandKeys::eIMUL:
+		{
+			m_result.instruction.push_back(code::Code(eIMUL));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			break;
+		}
 		case commandKeys::eDIV:
-			break;
-		default:
+		{
+			m_result.instruction.push_back(code::Code(eDIV));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
+		case commandKeys::eIDIV:
+		{
+			m_result.instruction.push_back(code::Code(eIDIV));
+			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			break;
+		}
+		//case commandKeys::eNEG:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eNEG);
+		//	break;
+		//}
+		//case commandKeys::eCAST:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, eCAST);
+		//	break;
+		//}
+		//case commandKeys::ePRINT:
+		//{
+		//	m_instruction.push_back(code::Code());
+		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, ePRINT);
+		//	break;
+		//}
+		default:
+			assert(false);
+			break;
+		}
+
 		tokens.clear();
 	}
-}
-
-void Parser::SourceCodeGenerator(const std::vector<std::string>& tokens)
-{
-	
-}
-
-std::vector<byte> Parser::getDataStorage() const
-{
-	return m_dataStorage;
-}
-
-size_t Parser::setStackSize() const
-{
-	return m_stackSize;
 }
 
 void split(const std::string& line, std::vector<std::string>& res)

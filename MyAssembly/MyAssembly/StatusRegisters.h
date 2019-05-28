@@ -8,6 +8,7 @@ struct StatusRegisters
 	{
 		sFlag.resize(4);
 	}
+
 	std::vector<bool> getFlag() const { return sFlag; };
 	
 	std::vector<bool> sFlag;

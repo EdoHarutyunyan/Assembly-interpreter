@@ -48,6 +48,15 @@
     <ClCompile Include="Code.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Type.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExecutionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StatusRegisters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interpreter.h">
@@ -65,9 +74,6 @@
     <ClInclude Include="CPU.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CommandNode.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="decl.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -79,9 +85,6 @@
     </ClInclude>
     <ClInclude Include="StatusRegisters.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="BaseCommand.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Command.h">
       <Filter>Header Files</Filter>
@@ -99,6 +102,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExecutionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParsedFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

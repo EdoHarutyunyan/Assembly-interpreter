@@ -4,8 +4,9 @@
 namespace processor
 {
 
-Processor::Processor()
-	: m_cpu{new CPU()}
+Processor::Processor(std::vector<code::Code> instruction, memory::Memory* ram)
+	: m_cpu{new CPU(ram)}
+	, m_instruction{instruction}
 {
 }
 
@@ -14,13 +15,9 @@ Processor::~Processor()
 	delete m_cpu;
 }
 
-void Processor::Execute(std::vector<BaseCommand*> ast)
+void Processor::Execute(const size_t entryPoint)
 {
-	while (m_cpu->m_ip != ast.size())
-	{
-		ast[m_cpu->m_ip]->Execute(*m_cpu);
-		++m_cpu->m_ip;
-	}
+	m_cpu->Execute(entryPoint, m_instruction);
 }
 
 }//namespace processor

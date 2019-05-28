@@ -1,14 +1,10 @@
 #include "Interpreter.h"
-#include "CommandNode.h"
-
-#include <vector>
-#include <cassert>
 
 namespace interpreter
 {
 
-Interpreter::Interpreter()
-	: vm{new virtualmachine::VM()}
+Interpreter::Interpreter(const ParsedFile& parsingResult)
+	: vm{ new virtualmachine::VM{parsingResult} }
 {
 }
 
@@ -17,9 +13,9 @@ Interpreter::~Interpreter()
 	delete vm;
 }
 
-void Interpreter::Start()
+void Interpreter::Start(const size_t entryPoint)
 {
-	//vm->Start(ASM->Tokenizer(ASM->ReadFromFile()));
+	vm->Start(entryPoint);
 }
 
 }//namespace interpreter

@@ -1,443 +1,590 @@
 #include "CPU.h"
-#include "Command.h"
-#include "CommandNode.h"
 #include "decl.h"
+#include "Command.h"
 
 #include <cassert>
 #include <cmath>
 
-CPU::CPU()
+CPU::CPU(memory::Memory* mem)
 	: m_ip{}
 	, m_CPUdataRegisters{}
 	, m_CPUaddressRegisters{}
 	, m_CPUstatusRegisters{}
+	, m_memory{mem}
 {
 }
 
-void CPU::add(const CommandNode& comNode)
+void CPU::Execute(const size_t entryPoint, std::vector<code::Code> instruction)
 {
-	if (comNode.m_opsize == "B")
-	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]];
-		byte temp = *b1;
-		*b1 += *b2;
-		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp || *b1 < *b2);
-		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b2 < 0 && *b1 > 0) || (temp > 0 && *b2 > 0 && *b1 < 0));
-	}
-	else if (comNode.m_opsize == "W")
-	{
-		assert(!((comNode.m_operand[0]) % 2 || (comNode.m_operand[1]) % 2));
+	using namespace command;
 
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		word temp = *w1;
-		*w1 += *w2;
-		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp || *w1 < *w2);
-		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w2 < 0 && *w1 > 0) || (temp > 0 && *w2 > 0 && *w1 < 0));
-	}
-	else if (comNode.m_opsize == "DW")
+	while(true)
 	{
-		assert(!((comNode.m_operand[0]) % 4 || (comNode.m_operand[1]) % 4));
+		switch (instruction[m_ip].getOpcode())
+		{
+		case commandKeys::eASSIGN:
+		{
+			assign(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			break;
+		}
+		case commandKeys::eADD:
+		{
+			add(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			break;
+		}
+		case commandKeys::eSUB:
+		{
+			sub(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			break;
+		}
+		case commandKeys::eMUL:
+		{
+			mul(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			break;
+		}
+		case commandKeys::eDIV:
+		{
+			div(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			break;
+		}
+		case commandKeys::eSTORE:
+		{
+			store(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			break;
+		}
+		case commandKeys::eLOAD:
+		{
+			load(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			break;
+		}
+		case commandKeys::eEND:
+		{
+			return;
+		}
 
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
+		default:
+			break;
+		}
+		++m_ip;
+	}
+}
+
+bool CPU::CheckCC(const size_t extension)
+{
+	switch (extension)
+	{
+	case code::Extensions::xE:
+	{
+		return getStFlag()[ZF];
+	}
+	case code::Extensions::xNE:
+	{
+		return !getStFlag()[ZF];
+	}
+	case code::Extensions::xA:
+	{
+		return (getStFlag()[CF] && !getStFlag()[ZF]);
+	}
+	case code::Extensions::xAE:
+	{
+		return !getStFlag()[CF];
+	}
+	case code::Extensions::xB:
+	{
+		return getStFlag()[CF];
+	}
+	case code::Extensions::xBE:
+	{
+		return (getStFlag()[CF] && getStFlag()[ZF]);
+	}
+	case code::Extensions::xG:
+	{
+		return (!getStFlag()[ZF] &&(getStFlag()[CF] == getStFlag()[OF]));
+	}
+	case code::Extensions::xGE:
+	{
+		return (getStFlag()[CF] == getStFlag()[OF]);
+	}
+	case code::Extensions::xL:
+	{
+		return (getStFlag()[SF] != getStFlag()[OF]);
+	}
+	case code::Extensions::xLE:
+	{
+		return ((getStFlag()[SF] != getStFlag()[OF]) && getStFlag()[ZF]);
+	}
+	case code::Extensions::xO:
+	{
+		return getStFlag()[OF];
+	}
+	case code::Extensions::xNO:
+	{
+		return !getStFlag()[OF];
+	}
+	case code::Extensions::xS:
+	{
+		return getStFlag()[SF];
+	}
+	case code::Extensions::xNS:
+	{
+		return !getStFlag()[SF];
+	}
+	default:
+		assert(false);
+		break;
+	}
+}
+
+void CPU::add(const size_t extension, const size_t lOper, const size_t rOper)
+{
+	if (extension >= code::Extensions::xE && extension <= code::Extensions::xNS)
+	{
+		if (!CheckCC(extension))
+		{
+			return;
+		}
+
+		assert(!((lOper) % 4 || (rOper) % 4));
+
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
 		dword temp = *dw1;
 		*dw1 += *dw2;
 		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
 		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp || *dw1 < *dw2);
 		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
 		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw2 < 0 && *dw1 > 0) || (temp > 0 && *dw2 > 0 && *dw1 < 0));
-	}
-	else if (comNode.m_opsize == "QW")
-	{
-		assert(!((comNode.m_operand[0]) % 8 || (comNode.m_operand[1]) % 8));
 
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
+		return;
+	}
+
+	switch (extension)
+	{
+	case code::Extensions::BYTE:
+	{
+		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[lOper];
+		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[rOper];
+		byte temp = *b1;
+		*b1 += *b2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp || *b1 < *b2);
+		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b2 < 0 && *b1 > 0) || (temp > 0 && *b2 > 0 && *b1 < 0));
+		break;
+	}
+	case code::Extensions::WORD:
+	{
+		assert(!(lOper % 2 || rOper % 2));
+
+		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
+		word temp = *w1;
+		*w1 += *w2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp || *w1 < *w2);
+		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w2 < 0 && *w1 > 0) || (temp > 0 && *w2 > 0 && *w1 < 0));
+		break;
+	}
+	case code::Extensions::DWORD:
+	{
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
+		dword temp = *dw1;
+		*dw1 += *dw2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp || *dw1 < *dw2);
+		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw2 < 0 && *dw1 > 0) || (temp > 0 && *dw2 > 0 && *dw1 < 0));
+		break;
+	}
+	case code::Extensions::QWORD:
+	{
+		assert(!(lOper % 8 || rOper % 8));
+
+		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
 		qword temp = *qw1;
 		*qw1 += *qw2;
 		m_CPUstatusRegisters.sFlag[ZF] = (*qw1 == 0);
 		m_CPUstatusRegisters.sFlag[CF] = (*qw1 < temp || *qw1 < *qw2);
 		m_CPUstatusRegisters.sFlag[SF] = (*qw1 < 0);
 		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *qw2 < 0 && *qw1 > 0) || (temp > 0 && *qw2 > 0 && *qw1 < 0));
+		break;
+	}
+	default:
+		assert(false);
+		break;
 	}
 }
 
-void CPU::sub(const CommandNode & comNode)
+
+void CPU::sub(const size_t extension, const size_t lOper, const size_t rOper)
 {
-	if (comNode.m_opsize == "B")
+	if (extension >= code::Extensions::xE && extension <= code::Extensions::xNS)
 	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]];
-		byte temp = *b1;
-		*b1 -= *b2;
-		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp || *b1 < *b2);
-		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b2 < 0 && *b1 > 0) || (temp > 0 && *b2 > 0 && *b1 < 0));
-	}
-	else if (comNode.m_opsize == "W")
-	{
-		assert(!((comNode.m_operand[0]) % 2 || (comNode.m_operand[1]) % 2));
+		if (!CheckCC(extension))
+		{
+			return;
+		}
 
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		word temp = *w1;
-		*w1 -= *w2;
-		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp || *w1 < *w2);
-		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w2 < 0 && *w1 > 0) || (temp > 0 && *w2 > 0 && *w1 < 0));
-	}
-	else if (comNode.m_opsize == "DW")
-	{
-		assert(!((comNode.m_operand[0]) % 4 || (comNode.m_operand[1]) % 4));
+		assert(!((lOper) % 4 || (rOper) % 4));
 
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
 		dword temp = *dw1;
 		*dw1 -= *dw2;
 		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
 		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp || *dw1 < *dw2);
 		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
 		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw2 < 0 && *dw1 > 0) || (temp > 0 && *dw2 > 0 && *dw1 < 0));
-	}
-	else if (comNode.m_opsize == "QW")
-	{
-		assert(!((comNode.m_operand[0]) % 8 || (comNode.m_operand[1]) % 8));
 
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
+		return;
+	}
+
+	switch (extension)
+	{
+	case code::Extensions::BYTE:
+	{
+		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[lOper];
+		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[rOper];
+		byte temp = *b1;
+		*b1 -= *b2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp || *b1 < *b2);
+		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b2 < 0 && *b1 > 0) || (temp > 0 && *b2 > 0 && *b1 < 0));
+		break;
+	}
+	case code::Extensions::WORD:
+	{
+		assert(!(lOper % 2 || rOper % 2));
+
+		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
+		word temp = *w1;
+		*w1 -= *w2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp || *w1 < *w2);
+		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w2 < 0 && *w1 > 0) || (temp > 0 && *w2 > 0 && *w1 < 0));
+		break;
+	}
+	case code::Extensions::DWORD:
+	{
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
+		dword temp = *dw1;
+		*dw1 -= *dw2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp || *dw1 < *dw2);
+		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw2 < 0 && *dw1 > 0) || (temp > 0 && *dw2 > 0 && *dw1 < 0));
+		break;
+	}
+	case code::Extensions::QWORD:
+	{
+		assert(!(lOper % 8 || rOper % 8));
+
+		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
 		qword temp = *qw1;
 		*qw1 -= *qw2;
 		m_CPUstatusRegisters.sFlag[ZF] = (*qw1 == 0);
 		m_CPUstatusRegisters.sFlag[CF] = (*qw1 < temp || *qw1 < *qw2);
 		m_CPUstatusRegisters.sFlag[SF] = (*qw1 < 0);
 		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *qw2 < 0 && *qw1 > 0) || (temp > 0 && *qw2 > 0 && *qw1 < 0));
+		break;
+	}
+	default:
+		assert(false);
+		break;
 	}
 }
 
-void CPU::mul(const CommandNode & comNode)
+
+void CPU::mul(const size_t extension, const size_t lOper, const size_t rOper)
 {
-	if (comNode.m_opsize == "B")
+	if (extension >= code::Extensions::xE && extension <= code::Extensions::xNS)
 	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]];
-		byte temp = *b1;
-		*b1 *= *b2;
-		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp || *b1 < *b2);
-		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b2 < 0 && *b1 > 0) || (temp > 0 && *b2 > 0 && *b1 < 0));
-	}
-	else if (comNode.m_opsize == "W")
-	{
-		assert(!((comNode.m_operand[0]) % 2 || (comNode.m_operand[1]) % 2));
+		if (!CheckCC(extension))
+		{
+			return;
+		}
 
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		word temp = *w1;
-		*w1 *= *w2;
-		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp || *w1 < *w2);
-		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w2 < 0 && *w1 > 0) || (temp > 0 && *w2 > 0 && *w1 < 0));
-	}
-	else if (comNode.m_opsize == "DW")
-	{
-		assert(!((comNode.m_operand[0]) % 4 || (comNode.m_operand[1]) % 4));
+		assert(!((lOper) % 4 || (rOper) % 4));
 
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
 		dword temp = *dw1;
 		*dw1 *= *dw2;
 		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
 		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp || *dw1 < *dw2);
 		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
 		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw2 < 0 && *dw1 > 0) || (temp > 0 && *dw2 > 0 && *dw1 < 0));
-	}
-	else if (comNode.m_opsize == "QW")
-	{
-		assert(!((comNode.m_operand[0]) % 8 || (comNode.m_operand[1]) % 8));
 
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
+		return;
+	}
+
+	switch (extension)
+	{
+	case code::Extensions::BYTE:
+	{
+		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[lOper];
+		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[rOper];
+		byte temp = *b1;
+		*b1 *= *b2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp || *b1 < *b2);
+		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b2 < 0 && *b1 > 0) || (temp > 0 && *b2 > 0 && *b1 < 0));
+		break;
+	}
+	case code::Extensions::WORD:
+	{
+		assert(!(lOper % 2 || rOper % 2));
+
+		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
+		word temp = *w1;
+		*w1 *= *w2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp || *w1 < *w2);
+		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w2 < 0 && *w1 > 0) || (temp > 0 && *w2 > 0 && *w1 < 0));
+		break;
+	}
+	case code::Extensions::DWORD:
+	{
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
+		dword temp = *dw1;
+		*dw1 *= *dw2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp || *dw1 < *dw2);
+		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw2 < 0 && *dw1 > 0) || (temp > 0 && *dw2 > 0 && *dw1 < 0));
+		break;
+	}
+	case code::Extensions::QWORD:
+	{
+		assert(!(lOper % 8 || rOper % 8));
+
+		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
 		qword temp = *qw1;
 		*qw1 *= *qw2;
 		m_CPUstatusRegisters.sFlag[ZF] = (*qw1 == 0);
 		m_CPUstatusRegisters.sFlag[CF] = (*qw1 < temp || *qw1 < *qw2);
 		m_CPUstatusRegisters.sFlag[SF] = (*qw1 < 0);
 		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *qw2 < 0 && *qw1 > 0) || (temp > 0 && *qw2 > 0 && *qw1 < 0));
+		break;
+	}
+	default:
+		assert(false);
+		break;
 	}
 }
 
-void CPU::div(const CommandNode & comNode)
+
+void CPU::div(const size_t extension, const size_t lOper, const size_t rOper)
 {
-	if (comNode.m_opsize == "B")
+	if (extension >= code::Extensions::xE && extension <= code::Extensions::xNS)
 	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]];
-		byte temp = *b1;
-		*b1 /= *b2;
-		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp || *b1 < *b2);
-		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b2 < 0 && *b1 > 0) || (temp > 0 && *b2 > 0 && *b1 < 0));
-	}
-	else if (comNode.m_opsize == "W")
-	{
-		assert(!((comNode.m_operand[0]) % 2 || (comNode.m_operand[1]) % 2));
+		if (!CheckCC(extension))
+		{
+			return;
+		}
 
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		word temp = *w1;
-		*w1 /= *w2;
-		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp || *w1 < *w2);
-		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w2 < 0 && *w1 > 0) || (temp > 0 && *w2 > 0 && *w1 < 0));
-	}
-	else if (comNode.m_opsize == "DW")
-	{
-		assert(!((comNode.m_operand[0]) % 4 || (comNode.m_operand[1]) % 4));
+		assert(!((lOper) % 4 || (rOper) % 4));
 
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
 		dword temp = *dw1;
 		*dw1 /= *dw2;
 		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
 		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp || *dw1 < *dw2);
 		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
 		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw2 < 0 && *dw1 > 0) || (temp > 0 && *dw2 > 0 && *dw1 < 0));
-	}
-	else if (comNode.m_opsize == "QW")
-	{
-		assert(!((comNode.m_operand[0]) % 8 || (comNode.m_operand[1]) % 8));
 
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
+		return;
+	}
+
+	switch (extension)
+	{
+	case code::Extensions::BYTE:
+	{
+		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[lOper];
+		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[rOper];
+		byte temp = *b1;
+		*b1 /= *b2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp || *b1 < *b2);
+		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b2 < 0 && *b1 > 0) || (temp > 0 && *b2 > 0 && *b1 < 0));
+		break;
+	}
+	case code::Extensions::WORD:
+	{
+		assert(!(lOper % 2 || rOper % 2));
+
+		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
+		word temp = *w1;
+		*w1 /= *w2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp || *w1 < *w2);
+		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w2 < 0 && *w1 > 0) || (temp > 0 && *w2 > 0 && *w1 < 0));
+		break;
+	}
+	case code::Extensions::DWORD:
+	{
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
+		dword temp = *dw1;
+		*dw1 /= *dw2;
+		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
+		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp || *dw1 < *dw2);
+		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
+		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw2 < 0 && *dw1 > 0) || (temp > 0 && *dw2 > 0 && *dw1 < 0));
+		break;
+	}
+	case code::Extensions::QWORD:
+	{
+		assert(!(lOper % 8 || rOper % 8));
+
+		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[rOper]);
 		qword temp = *qw1;
 		*qw1 /= *qw2;
 		m_CPUstatusRegisters.sFlag[ZF] = (*qw1 == 0);
 		m_CPUstatusRegisters.sFlag[CF] = (*qw1 < temp || *qw1 < *qw2);
 		m_CPUstatusRegisters.sFlag[SF] = (*qw1 < 0);
 		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *qw2 < 0 && *qw1 > 0) || (temp > 0 && *qw2 > 0 && *qw1 < 0));
+
+		break;
+	}
+	default:
+		assert(false);
+		break;
 	}
 }
 
-void CPU::cmp(const CommandNode & comNode)
+void CPU::assign(const size_t extension, const size_t lOper, const size_t rOper)
 {
-	if (comNode.m_opsize == "B")
+	if (extension >= code::Extensions::xE && extension <= code::Extensions::xNS)
 	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]];
-		byte temp = *b1 - *b2;
-		m_CPUstatusRegisters.sFlag[ZF] = (temp == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*b1 > temp || temp < *b2);
-		m_CPUstatusRegisters.sFlag[SF] = (temp < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((*b1 < 0 && *b2 < 0 && temp > 0) || (*b1 > 0 && *b2 > 0 && temp < 0));
-	}
-	else if (comNode.m_opsize == "W")
-	{
-		assert(!((comNode.m_operand[0]) % 2 || (comNode.m_operand[1]) % 2));
+		if (!CheckCC(extension))
+		{
+			return;
+		}
 
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		byte temp = *w1 - *w2;
-		m_CPUstatusRegisters.sFlag[ZF] = (temp == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*w1 > temp || temp < *w2);
-		m_CPUstatusRegisters.sFlag[SF] = (temp < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((*w1 < 0 && *w2 < 0 && temp > 0) || (*w1 > 0 && *w2 > 0 && temp < 0));
-	}
-	else if (comNode.m_opsize == "DW")
-	{
-		assert(!((comNode.m_operand[0]) % 4 || (comNode.m_operand[1]) % 4));
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUaddressRegisters.aReg[lOper - code::addressRegsStartPos]);
+		*dw1 = rOper;
 
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		byte temp = *dw1 - *dw2;
-		m_CPUstatusRegisters.sFlag[ZF] = (temp == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*dw1 > temp || temp < *dw2);
-		m_CPUstatusRegisters.sFlag[SF] = (temp < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((*dw1 < 0 && *dw2 < 0 && temp > 0) || (*dw1 > 0 && *dw2 > 0 && temp < 0));
+		return;
 	}
-	else if (comNode.m_opsize == "QW")
+	switch (extension)
 	{
-		assert(!((comNode.m_operand[0]) % 8 || (comNode.m_operand[1]) % 8));
+	case code::Extensions::BYTE:
+	{
+		byte* b1 = &m_CPUaddressRegisters.aReg[lOper - code::addressRegsStartPos];
+		*b1 = rOper;
 
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		byte temp = *qw1 - *qw2;
-		m_CPUstatusRegisters.sFlag[ZF] = (temp == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*qw1 > temp || temp < *qw2);
-		m_CPUstatusRegisters.sFlag[SF] = (temp < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((*qw1 < 0 && *qw2 < 0 && temp > 0) || (*qw1 > 0 && *qw2 > 0 && temp < 0));
+		break;
+	}
+	case code::Extensions::WORD:
+	{
+		assert(!(lOper % 2 || rOper % 2));
+
+		word* w1 = reinterpret_cast<word*>(&m_CPUaddressRegisters.aReg[lOper - code::addressRegsStartPos]);
+		*w1 = rOper;
+		
+		break;
+	}
+	case code::Extensions::DWORD:
+	{
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUaddressRegisters.aReg[lOper - code::addressRegsStartPos]);
+		*dw1 = rOper;
+		
+		break;
+	}
+	case code::Extensions::QWORD:
+	{
+		assert(!(lOper % 8 || rOper % 8));
+
+		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[lOper - code::addressRegsStartPos]);
+		*qw1 = rOper;
+
+		break;
+	}
+	default:
+		assert(false);
+		break;
 	}
 }
 
-void CPU::deg(const CommandNode & comNode)
+void CPU::load(const size_t extension, const size_t lOper, const size_t rOper)
 {
-	if (comNode.m_opsize == "B")
+	if (extension >= code::Extensions::xE && extension <= code::Extensions::xNS)
 	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		byte temp = *b1;
-		std::pow(*b1, comNode.m_operand[1]);
-		m_CPUstatusRegisters.sFlag[ZF] = (*b1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*b1 < temp);
-		m_CPUstatusRegisters.sFlag[SF] = (*b1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *b1 > 0) || (temp > 0 && *b1 < 0));
-	}
-	else if (comNode.m_opsize == "W")
-	{
-		assert(!((comNode.m_operand[0]) % 2 || (comNode.m_operand[1]) % 2));
+		if (!CheckCC(extension))
+		{
+			return;
+		}
+		assert(!((lOper) % 4 || (rOper) % 4));
 
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		word temp = *w1;
-		std::pow(*w1, comNode.m_operand[1]);
-		m_CPUstatusRegisters.sFlag[ZF] = (*w1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*w1 < temp);
-		m_CPUstatusRegisters.sFlag[SF] = (*w1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *w1 > 0) || (temp > 0 && *w1 < 0));
-	}
-	else if (comNode.m_opsize == "DW")
-	{
-		assert(!((comNode.m_operand[0]) % 4 || (comNode.m_operand[1]) % 4));
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
 
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		dword temp = *dw1;
-		std::pow(*dw1, comNode.m_operand[1]);
-		m_CPUstatusRegisters.sFlag[ZF] = (*dw1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*dw1 < temp);
-		m_CPUstatusRegisters.sFlag[SF] = (*dw1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *dw1 > 0) || (temp > 0 && *dw1 < 0));
-	}
-	else if (comNode.m_opsize == "QW")
-	{
-		assert(!((comNode.m_operand[0]) % 8 || (comNode.m_operand[1]) % 8));
+		*dw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper]];
 
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		qword temp = *qw1;
-		std::pow(*qw1, comNode.m_operand[1]);
-		m_CPUstatusRegisters.sFlag[ZF] = (*qw1 == 0);
-		m_CPUstatusRegisters.sFlag[CF] = (*qw1 < temp);
-		m_CPUstatusRegisters.sFlag[SF] = (*qw1 < 0);
-		m_CPUstatusRegisters.sFlag[OF] = ((temp < 0 && *qw1 > 0) || (temp > 0 && *qw1 < 0));
+		return;
 	}
-}
-
-void CPU::mov(const CommandNode& comNode)
-{
-	if (comNode.m_opsize == "B")
+	switch (extension)
 	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		byte* b2 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]];
-		*b1 = *b2;
+	case code::Extensions::BYTE:
+	{
+		byte* b = &m_CPUdataRegisters.m_dataRegisters[lOper];
+
+		*b = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize()];
+
+		break;
 	}
-	else if (comNode.m_opsize == "W")
+	case code::Extensions::WORD:
 	{
-		assert(!((comNode.m_operand[0]) % 2 || (comNode.m_operand[1]) % 2));
+		assert(!((lOper) % 2 || (rOper) % 2));
 
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		*w1 = *w2;
+		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+
+		*w1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper]];
+
+		break;
 	}
-	else if (comNode.m_opsize == "DW")
+	case code::Extensions::DWORD:
 	{
-		assert(!((comNode.m_operand[0]) % 4 || (comNode.m_operand[1]) % 4));
+		assert(!((lOper) % 4 || (rOper) % 4));
 
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		*dw1 = *dw2;
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+
+		*dw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper]];
+		break;
 	}
-	else if (comNode.m_opsize == "QW")
+	case code::Extensions::QWORD:
 	{
-		assert(!((comNode.m_operand[0]) % 8 || (comNode.m_operand[1]) % 8));
+		assert(!((lOper) % 8 || (rOper) % 8));
 
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		*qw1 = *qw2;
+		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+
+		*qw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper]];
+		break;
+	}
+	default:
+		break;
 	}
 }
 
-void CPU::test(const CommandNode & comNode)
-{
-
-}
-
-void CPU::print(const CommandNode& comNode)
-{
-	if (comNode.m_opsize == "B")
-	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		std::cout << *b1 << std::endl;
-	}
-	else if (comNode.m_opsize == "W")
-	{
-		assert(!((comNode.m_operand[0]) % 2));
-
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		std::cout << *w1 << std::endl;
-	}
-	else if (comNode.m_opsize == "DW")
-	{
-		assert(!((comNode.m_operand[0]) % 4));
-
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		std::cout << *dw1 << std::endl;
-	}
-	else if (comNode.m_opsize == "QW")
-	{
-		assert(!((comNode.m_operand[0]) % 8));
-
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		std::cout << *qw1 << std::endl;
-	}
-}
-
-void CPU::assign(const CommandNode& comNode)
-{
-	if (comNode.m_opsize == "B")
-	{
-		byte* b1 = &m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]];
-		byte temp = *b1;//statusflags
-		*b1 = comNode.m_operand[1];
-	}
-	else if (comNode.m_opsize == "W")
-	{
-		assert(!((comNode.m_operand[0]) % 2));
-
-		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		word* w2 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		word temp = *w1;//statusflags
-		*w1 = comNode.m_operand[1];
-	}
-	else if (comNode.m_opsize == "DW")
-	{
-		assert(!((comNode.m_operand[0]) % 4));
-
-		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		dword* dw2 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		dword temp = *dw1;
-		*dw1 = comNode.m_operand[1];
-	}
-	else if (comNode.m_opsize == "QW")
-	{
-		assert(!((comNode.m_operand[0]) % 8));
-
-		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[0]]);
-		qword* qw2 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[comNode.m_operand[1]]);
-		qword temp = *qw1;
-		*qw1 = comNode.m_operand[1];
-	}
-}
-
-void CPU::load(const CommandNode & comNode)
+void CPU::store(size_t extension, size_t lOper, size_t rOper)
 {
 }
 

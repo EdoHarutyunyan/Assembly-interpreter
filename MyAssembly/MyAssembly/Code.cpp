@@ -2,72 +2,193 @@
 #include "Type.h"
 
 #include <sstream>
+#include <cassert>
+#include <unordered_map>
 
 namespace code
 {
 
-Code::Code(std::vector<std::string> tokens, std::string extension = "DW")
+Code::Code(size_t opcode)
+	: m_opcode{opcode}
+	, m_extension{DWORD}
+	, m_lOper{}
+	, m_rOper{}
 {
 }
 
-const size_t addressRegsStartPos = 70;
-
-enum Extensions
+Code::Code(size_t opcode, std::string reg)
+	: m_opcode{ opcode }
+	, m_extension{ DWORD }
+	, m_lOper{}
 {
+	m_lOper = regInit(reg);
+}
+
+void Code::SourceCodeGenerator(const std::vector<std::string>& tokens, std::set<std::string>& funcDeclaration,
+	std::unordered_map<std::string, size_t>& funcDefinition)
+{
+	if (setExtension(tokens[1]))
+	{
+		assert(tokens.size() == 4);
+		
+		setlOper(tokens[2]);
+		setrOper(tokens[3], funcDeclaration, funcDefinition);
+	}
+	else // if not given extension, the default is exactly DW
+	{
+		assert(tokens.size() == 3);
+		
+		setlOper(tokens[1]);
+		setrOper(tokens[2], funcDeclaration, funcDefinition);
+	}
+}
+
+bool Code::setExtension(const std::string& ext)
+{
+	auto findIt = extTable.find(ext);
+	if (findIt != extTable.end())
+	{
+		m_extension = extTable[ext];
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void Code::setlOper(const std::string& reg)
+{
+	m_lOper = regInit(reg);
+}
+
+void Code::setlOper(const std::string& lOper, std::map<std::string, size_t>& labels)
+{
+	auto it = labels.find(lOper);
+
+	if (it != labels.end())
+	{
+		m_lOper = it->second;
+	}
+	else
+	{
+		labels.insert({ lOper, -1 });
+	}
+}
+
+void Code::setrOper(const std::string& rOp, std::set<std::string>& funcDeclaration,
+	std::unordered_map<std::string, size_t>& funcDefinition)
+{
+	auto table_it = type::type_table.find(rOp);
+	auto dec_it = funcDeclaration.find(rOp);
+	auto def_it = funcDefinition.find(rOp);
+
+	if ((table_it != type::type_table.end()
+		&& dec_it != funcDeclaration.end())
+	 || (table_it != type::type_table.end()
+		&& def_it != funcDefinition.end()))
+	{
+		throw std::invalid_argument(rOp + ": redefinition");
+	}
+	if (table_it != type::type_table.end())
+	{
+		m_rOper = table_it->second;
+	}
+	else if (def_it != funcDefinition.end())
+	{
+		m_rOper = def_it->second;
+	}
+	else if (dec_it != funcDeclaration.end())
+	{
+		funcDefinition.insert({ rOp, -1 });
+	}
+	else
+	{
+		m_rOper = regInit(rOp);
+	}
+
+}
+
+void Code::setrOper(const size_t index)
+{
+	m_rOper = index;
+}
+
+void Code::setlOper(const size_t index)
+{
+	m_lOper = index;
+}
+
+size_t Code::getOpcode() const
+{
+	return m_opcode;
+}
+
+size_t Code::getExtension() const
+{
+	return m_extension;
+}
+
+size_t Code::getlOper() const
+{
+	return m_lOper;
+}
+
+size_t Code::getrOper() const
+{
+	return m_rOper;
+}
+
+size_t Code::regInit(const std::string& reg)
+{
+	std::stringstream ss;
+	char firstSimbol;
+	
+	size_t returnValue;
+
+	ss << reg;
+	ss >> firstSimbol;
+
+	if (firstSimbol == 'R')// General purpose register
+	{
+		ss >> returnValue;
+	}
+	else if (firstSimbol == 'A')// Address register
+	{
+		ss >> returnValue;
+		returnValue += code::addressRegsStartPos;
+	}
+	else
+	{
+		throw std::invalid_argument(returnValue + ": undeclared identifier");
+	}
+
+	return returnValue;
+}
+
+std::unordered_map<std::string, size_t> Code::extTable = {
 	// CC
-	xE  = 1,
-	xNE	= 2,
-	xA	= 3,
-	xAE	= 4,
-	xB	= 5,
-	xBE	= 6,
-	xG	= 7,
-	xGE	= 8,
-	xL	= 9,
-	xLE	= 10,
-	xO	= 11,
-	xNO	= 12,
-	xS	= 13,
-	xNS	= 14,
-
+	{"xE", xE},
+	{"xNE",xNE},
+	{"xA", xA},
+	{"xAE", xAE},
+	{"xB", xB},
+	{"xBE", xBE},
+	{"xG", xG},
+	{"xGE", xGE},
+	{"xL", xL},
+	{"xLE", xLE},
+	{"xO", xO},
+	{"xNO", xNO},
+	{"xS", xS},
+	{"xNS", xNS},
 	// Opsize
-	BYTE  = 20,
-	WORD  = 21,
-	DWORD = 22,
-	QWORD = 23
+	{"BYTE", BYTE},
+	{"WORD", WORD},
+	{"DWORD", DWORD},
+	{"QWORD", QWORD},
 };
 
-enum Registers
-{
-	// General purpose registers
-	R0 = 0,
-	R1,
-	R2,
-	R3,
-	R4,
-	R5,
-	R6,
-	R7,
-	R8,
-	R9,
-	R10,
-	R11,
-	R12,
-	R13,
-	R14,
-	R15,
-	//...
-	R63,
-
-	//Address Registers
-	A0 = 70,
-	A1,
-	A2,
-	A3,
-	A4,
-	A5,
-	A6,
-	A7
-};
+const size_t addressRegsStartPos = 70;
 
 }//namespace code

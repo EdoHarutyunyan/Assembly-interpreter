@@ -1,8 +1,6 @@
 #pragma once
 
 #include "VM.h"
-#include "FileManager.h"
-//#include "Code.h"
 
 namespace interpreter
 {
@@ -10,14 +8,13 @@ namespace interpreter
 class Interpreter
 {
 public:
-	Interpreter();
+	explicit Interpreter(const ParsedFile& parsingResult);
 	~Interpreter();
 
-	void Start();
+	void Start(size_t entryPoint);
 
 private:
 	virtualmachine::VM* vm;
-	//std::vector<code::Code> dataStructure;
 };
 
 }//namespace interpreter

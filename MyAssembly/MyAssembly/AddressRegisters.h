@@ -9,7 +9,7 @@ public:
 	AddressRegisters()
 		: aReg{}
 	{
-		aReg.resize(6);
+		aReg.resize(8);
 	}
 	~AddressRegisters() = default;
 
