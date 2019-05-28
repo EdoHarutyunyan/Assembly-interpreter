@@ -20,6 +20,11 @@ std::vector<byte> Memory::getRAM() const
 	return m_RAM;
 }
 
+void Memory::setRAM(const size_t index, const byte data)
+{
+	m_RAM[index] = data;
+}
+
 size_t Memory::getStackSize() const
 {
 	return m_stackSize;

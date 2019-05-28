@@ -302,7 +302,6 @@ void CPU::sub(const size_t extension, const size_t lOper, const size_t rOper)
 	}
 }
 
-
 void CPU::mul(const size_t extension, const size_t lOper, const size_t rOper)
 {
 	if (extension >= code::Extensions::xE && extension <= code::Extensions::xNS)
@@ -385,7 +384,6 @@ void CPU::mul(const size_t extension, const size_t lOper, const size_t rOper)
 		break;
 	}
 }
-
 
 void CPU::div(const size_t extension, const size_t lOper, const size_t rOper)
 {
@@ -537,7 +535,7 @@ void CPU::load(const size_t extension, const size_t lOper, const size_t rOper)
 
 		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
 
-		*dw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper]];
+		*dw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize()];
 
 		return;
 	}
@@ -557,7 +555,7 @@ void CPU::load(const size_t extension, const size_t lOper, const size_t rOper)
 
 		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
 
-		*w1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper]];
+		*w1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize()];
 
 		break;
 	}
@@ -567,7 +565,7 @@ void CPU::load(const size_t extension, const size_t lOper, const size_t rOper)
 
 		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
 
-		*dw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper]];
+		*dw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize()];
 		break;
 	}
 	case code::Extensions::QWORD:
@@ -576,7 +574,7 @@ void CPU::load(const size_t extension, const size_t lOper, const size_t rOper)
 
 		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
 
-		*qw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper]];
+		*qw1 = m_memory->getRAM()[m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize()];
 		break;
 	}
 	default:
@@ -586,6 +584,63 @@ void CPU::load(const size_t extension, const size_t lOper, const size_t rOper)
 
 void CPU::store(size_t extension, size_t lOper, size_t rOper)
 {
+	if (extension >= code::Extensions::xE && extension <= code::Extensions::xNS)
+	{
+		if (!CheckCC(extension))
+		{
+			return;
+		}
+		assert(!((lOper) % 4 || (rOper) % 4));
+
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+
+		m_memory->setRAM(m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize(), *dw1);
+
+		return;
+	}
+	switch (extension)
+	{
+	case code::Extensions::BYTE:
+	{
+		byte* b = &m_CPUdataRegisters.m_dataRegisters[lOper];
+
+		m_memory->setRAM(m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize(), *b);
+
+		break;
+	}
+	case code::Extensions::WORD:
+	{
+		assert(!((lOper) % 2 || (rOper) % 2));
+
+		word* w1 = reinterpret_cast<word*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+
+		m_memory->setRAM(m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize(), *w1);
+		
+		break;
+	}
+	case code::Extensions::DWORD:
+	{
+		assert(!((lOper) % 4 || (rOper) % 4));
+
+		dword* dw1 = reinterpret_cast<dword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+
+		m_memory->setRAM(m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize(), *dw1);
+
+		break;
+	}
+	case code::Extensions::QWORD:
+	{
+		assert(!((lOper) % 8 || (rOper) % 8));
+
+		qword* qw1 = reinterpret_cast<qword*>(&m_CPUdataRegisters.m_dataRegisters[lOper]);
+
+		m_memory->setRAM(m_CPUaddressRegisters.aReg[rOper - code::addressRegsStartPos] + m_memory->getStackSize(), *qw1);
+
+		break;
+	}
+	default:
+		break;
+	}
 }
 
 void CPU::setIp(const size_t newIp)
