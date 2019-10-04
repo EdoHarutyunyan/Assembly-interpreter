@@ -3,7 +3,7 @@
 namespace memory
 {
 
-Memory::Memory(size_t stackSize, const std::vector<byte>& data)
+Memory::Memory(const size_t stackSize, const std::vector<byte>& data)
 	: m_size{data.size() + stackSize}
 	, m_stackSize{stackSize}
 {

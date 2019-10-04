@@ -9,7 +9,7 @@ namespace processor
 class Processor
 {
 public:
-	Processor(std::vector<code::Code> instruction, memory::Memory* ram);
+	Processor(const std::vector<code::Code>& instruction, memory::Memory* ram);
 	~Processor();
 
 	void Execute(size_t entryPoint);
@@ -19,5 +19,5 @@ private:
 	std::vector<code::Code> m_instruction;
 };
 
-}//namespace processor 
+} //namespace processor 
 

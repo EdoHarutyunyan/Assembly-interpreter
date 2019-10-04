@@ -8,7 +8,7 @@
 namespace code
 {
 
-Code::Code(size_t opcode)
+Code::Code(const size_t opcode)
 	: m_opcode{opcode}
 	, m_extension{DWORD}
 	, m_lOper{}
@@ -16,7 +16,7 @@ Code::Code(size_t opcode)
 {
 }
 
-Code::Code(size_t opcode, std::string reg)
+Code::Code(const size_t opcode, const std::string& reg)
 	: m_opcode{ opcode }
 	, m_extension{ DWORD }
 	, m_lOper{}
@@ -45,16 +45,14 @@ void Code::SourceCodeGenerator(const std::vector<std::string>& tokens, std::set<
 
 bool Code::setExtension(const std::string& ext)
 {
-	auto findIt = extTable.find(ext);
-	if (findIt != extTable.end())
+	auto findIt = extensionTable.find(ext);
+	if (findIt != extensionTable.end())
 	{
-		m_extension = extTable[ext];
+		m_extension = extensionTable[ext];
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+
+	return false;
 }
 
 void Code::setlOper(const std::string& reg)
@@ -149,11 +147,11 @@ size_t Code::regInit(const std::string& reg)
 	ss << reg;
 	ss >> firstSimbol;
 
-	if (firstSimbol == 'R')// General purpose register
+	if (firstSimbol == 'R') // General purpose register
 	{
 		ss >> returnValue;
 	}
-	else if (firstSimbol == 'A')// Address register
+	else if (firstSimbol == 'A') // Address register
 	{
 		ss >> returnValue;
 		returnValue += code::addressRegsStartPos;
@@ -166,7 +164,7 @@ size_t Code::regInit(const std::string& reg)
 	return returnValue;
 }
 
-std::unordered_map<std::string, size_t> Code::extTable = {
+std::unordered_map<std::string, size_t> Code::extensionTable = {
 	// CC
 	{"xE", xE},
 	{"xNE",xNE},

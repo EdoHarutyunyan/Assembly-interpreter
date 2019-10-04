@@ -15,8 +15,7 @@ namespace parser
 using namespace type;
 
 Parser::Parser()
-	: m_result{}
-	, m_offset{}
+	: m_offset(0u)
 {
 }
 
@@ -37,9 +36,9 @@ void Parser::Start(const std::vector<std::string>& file)
 
 void Parser::StackSizeParser(const std::string& stackSizeSegment)
 {
-	size_t pos = stackSizeSegment.find_last_of(' ');
-	size_t count = stackSizeSegment.length() - pos;
-	m_result.stackSize = std::atoi(stackSizeSegment.substr(pos, count).c_str());
+	const size_t pos = stackSizeSegment.find_last_of(' ');
+	const size_t count = stackSizeSegment.length() - pos;
+	m_result.m_stackSize = std::atoi(stackSizeSegment.substr(pos, count).c_str());
 }
 
 void Parser::DataParser(const std::vector<std::string>& dataSegment)
@@ -56,9 +55,9 @@ void Parser::DataParser(const std::vector<std::string>& dataSegment)
 
 void Parser::EntryPointParser(const std::string& entryPointSegment)
 {
-	size_t pos = entryPointSegment.find_last_of(' ');
-	size_t count = entryPointSegment.length() - pos;
-	m_result.entryPoint = std::atoi(entryPointSegment.substr(pos, count).c_str());
+	const size_t pos = entryPointSegment.find_last_of(' ');
+	const size_t count = entryPointSegment.length() - pos;
+	m_result.m_entryPoint = std::atoi(entryPointSegment.substr(pos, count).c_str());
 }
 
 ParsedFile Parser::getResult() const
@@ -75,10 +74,7 @@ void Parser::DevideIntoParts(
 {
 	size_t breakPoint;
 
-	stackSize = file[0];// Size of stack
-
-	dataSegment.reserve(file.size());
-	codeSegment.reserve(file.size());
+	stackSize = file[0]; // Size of stack
 
 	for (size_t i = 1; i < file.size(); ++i) // Data partition
 	{
@@ -112,7 +108,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 {
 	std::vector<std::string> numInitList;
 
-	size_t offsetFactor = DetermineOffsetSize(tokens, numInitList);
+	const size_t offsetFactor = DetermineOffsetSize(tokens, numInitList);
 
 	// name -> offset
 	UpdateTypeTable(tokens[1], m_offset);
@@ -121,14 +117,14 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	{
 	case Type::CHAR:
 	{
-		if (tokens.size() > 2)// if given initial value
+		if (tokens.size() > 2) // if given initial value
 		{
 			std::string initialString = tokens[3].substr(1, tokens[3].length() - 2); // delete '' and ""
 
-			//initialize by given value
+			// initialize by given value
 			for (size_t i = 0; i < initialString.length(); ++i)
 			{
-				byte* b = &m_result.dataStorage[m_offset];
+				byte* b = &m_result.m_dataStorage[m_offset];
 
 				*b = initialString[i];
 				m_offset += sizeof(byte);
@@ -148,7 +144,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			byte* b = &m_result.dataStorage[m_offset];
+			byte* b = &m_result.m_dataStorage[m_offset];
 			*b = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(byte);
 		}
@@ -158,7 +154,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			byte* b = &m_result.dataStorage[m_offset];
+			byte* b = &m_result.m_dataStorage[m_offset];
 			*b = 0;
 			m_offset += sizeof(byte);
 		}
@@ -170,7 +166,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			word* w = reinterpret_cast<word*>(&m_result.dataStorage[m_offset]);
+			word* w = reinterpret_cast<word*>(&m_result.m_dataStorage[m_offset]);
 			*w = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(word);
 		}
@@ -180,7 +176,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			word* w = reinterpret_cast<word*>(&m_result.dataStorage[m_offset]);
+			word* w = reinterpret_cast<word*>(&m_result.m_dataStorage[m_offset]);
 			*w = 0;
 			m_offset += sizeof(word);
 		}
@@ -192,7 +188,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			dword* d = reinterpret_cast<dword*>(&m_result.dataStorage[m_offset]);
+			dword* d = reinterpret_cast<dword*>(&m_result.m_dataStorage[m_offset]);
 			*d = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(dword);
 		}
@@ -202,7 +198,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			dword* d = reinterpret_cast<dword*>(&m_result.dataStorage[m_offset]);
+			dword* d = reinterpret_cast<dword*>(&m_result.m_dataStorage[m_offset]);
 			*d = 0;
 			m_offset += sizeof(dword);
 		}
@@ -214,7 +210,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			qword* q = reinterpret_cast<qword*>(&m_result.dataStorage[m_offset]);
+			qword* q = reinterpret_cast<qword*>(&m_result.m_dataStorage[m_offset]);
 			*q = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(qword);
 		}
@@ -224,7 +220,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			qword* q = reinterpret_cast<qword*>(&m_result.dataStorage[m_offset]);
+			qword* q = reinterpret_cast<qword*>(&m_result.m_dataStorage[m_offset]);
 			*q = 0;
 			m_offset += sizeof(qword);
 		}
@@ -238,7 +234,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 
 size_t Parser::DetermineOffsetSize(const std::vector<std::string>& tokens, std::vector<std::string>& numInitList)
 {
-	size_t pos = tokens[1].find('[');
+	const size_t pos = tokens[1].find('[');
 	size_t offsetFactor = 1;
 
 	if (tokens.size() > 2 && type_map[tokens[0]] != CHAR)// if given initial value
@@ -261,6 +257,7 @@ size_t Parser::DetermineOffsetSize(const std::vector<std::string>& tokens, std::
 		}
 	}
 
+	// return array size
 	return offsetFactor;
 }
 
@@ -298,7 +295,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 				if (it != funcDefinition.end())
 				{
 					//if operand is a function definition and was declared earlier
-					m_result.instruction[it->second].setrOper(i);
+					m_result.m_instruction[it->second].setrOper(i);
 				}
 				else
 				{
@@ -310,13 +307,14 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 			continue;
 		}
 
-		if (char lastChar = tokens[0].at(tokens[0].length() - 1); lastChar == ':') // Is Label
+		char lastChar = tokens[0].at(tokens[0].length() - 1);
+		if (lastChar == ':') // Is Label
 		{
 			auto it = labels.find(tokens[0]);
 			if (it != labels.end())
 			{
 				//if operand is a label and was declared earlier
-				m_result.instruction[it->second].setlOper(i);
+				m_result.m_instruction[it->second].setlOper(i);
 			}
 			else
 			{
@@ -341,23 +339,23 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		//}
 		case commandKeys::eEND:
 		{
-			m_result.instruction.push_back(code::Code(eEND));
+			m_result.m_instruction.push_back(code::Code(eEND));
 			break;
 		}
 		case commandKeys::eJUMP:
 		{
-			m_result.instruction.push_back(code::Code(eJUMP));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eJUMP));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eCALL:
 		{
-			m_result.instruction.push_back(code::Code(eCALL, tokens[1]));
+			m_result.m_instruction.push_back(code::Code(eCALL, tokens[1]));
 			break;
 		}
 		case commandKeys::eRET:
 		{
-			m_result.instruction.push_back(code::Code(eRET));
+			m_result.m_instruction.push_back(code::Code(eRET));
 			break;
 		}
 		//case commandKeys::eGFLR:
@@ -374,14 +372,14 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		//}
 		case commandKeys::eLOAD:
 		{
-			m_result.instruction.push_back(code::Code(eLOAD));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eLOAD));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eSTORE:
 		{
-			m_result.instruction.push_back(code::Code(eSTORE));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eSTORE));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		//case commandKeys::eLDREL:
@@ -416,8 +414,8 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		//}
 		case commandKeys::eASSIGN:
 		{
-			m_result.instruction.push_back(code::Code(eASSIGN));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eASSIGN));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		//case commandKeys::eSET:
@@ -560,50 +558,50 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		//}
 		case commandKeys::eADD:
 		{
-			m_result.instruction.push_back(code::Code(eADD));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eADD));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eADC:
 		{
-			m_result.instruction.push_back(code::Code(eADC));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eADC));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eSUB:
 		{
-			m_result.instruction.push_back(code::Code(eSUB));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eSUB));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eSBB:
 		{
-			m_result.instruction.push_back(code::Code(eSBB));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eSBB));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eMUL:
 		{
-			m_result.instruction.push_back(code::Code(eMUL));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eMUL));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eIMUL:
 		{
-			m_result.instruction.push_back(code::Code(eIMUL));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eIMUL));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eDIV:
 		{
-			m_result.instruction.push_back(code::Code(eDIV));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eDIV));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eIDIV:
 		{
-			m_result.instruction.push_back(code::Code(eIDIV));
-			m_result.instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_result.m_instruction.push_back(code::Code(eIDIV));
+			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		//case commandKeys::eNEG:
@@ -657,9 +655,10 @@ void split(const std::string& line, std::vector<std::string>& res)
 	}
 }
 
+// when given initial value by initializer list
 std::vector<std::string> InitialValueSplit(const std::string& line)
 {
-	std::vector<std::string> initialValue;
+	std::vector<std::string> initialValue; 
 	std::stringstream ss(line);
 	std::string item;
 

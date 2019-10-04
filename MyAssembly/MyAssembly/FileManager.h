@@ -16,7 +16,7 @@ public:
 
 	std::vector<std::string> ReadFromFile();
 
-	void WriteToFile(const std::vector<std::string> &lines);
+	void WriteToFile(const std::vector<std::string>& lines);
 
 private:
 	std::fstream m_file;

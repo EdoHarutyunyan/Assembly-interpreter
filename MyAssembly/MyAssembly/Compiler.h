@@ -10,7 +10,7 @@ namespace compiler
 class Compiler
 {
 public:
-	Compiler(const std::string& file);
+	explicit Compiler(const std::string& file);
 	~Compiler();
 
 	void Start();

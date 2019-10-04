@@ -4,7 +4,7 @@
 namespace processor
 {
 
-Processor::Processor(std::vector<code::Code> instruction, memory::Memory* ram)
+Processor::Processor(const std::vector<code::Code>& instruction, memory::Memory* ram)
 	: m_cpu{new CPU(ram)}
 	, m_instruction{instruction}
 {

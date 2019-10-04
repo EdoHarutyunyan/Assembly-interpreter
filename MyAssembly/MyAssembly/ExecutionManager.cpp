@@ -18,8 +18,11 @@ ExecutionManager::~ExecutionManager()
 void ExecutionManager::Start()
 {
 	m_compiler->Start();
-	m_interpreter = new interpreter::Interpreter{ m_compiler->getParsingResult() };
-	m_interpreter->Start(m_compiler->getParsingResult().entryPoint);
+
+	const ParsedFile parsingResult = m_compiler->getParsingResult();
+
+	m_interpreter = new interpreter::Interpreter(parsingResult);
+	m_interpreter->Start(parsingResult.m_entryPoint);
 }
 
 }// namespace manager

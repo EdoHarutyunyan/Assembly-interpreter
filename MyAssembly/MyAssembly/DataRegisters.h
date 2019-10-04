@@ -10,6 +10,7 @@ public:
 	DataRegisters()
 		: m_dataRegisters{}
 	{
+		m_dataRegisters.resize(64);
 	}
-	byte m_dataRegisters[64];
+	std::vector<byte> m_dataRegisters;
 };

@@ -4,18 +4,19 @@
 
 #include <vector>
 
-struct ParsedFile
+class ParsedFile
 {
+public:
 	ParsedFile()
-		: stackSize{}
-		, dataStorage(1024)
-		, instruction{}
-		, entryPoint{}
+		: m_stackSize(0u)
+		, m_dataStorage(1024)
+		, m_entryPoint(0u)
 	{
 	}
 
-	size_t stackSize;
-	std::vector<byte> dataStorage;
-	std::vector<code::Code> instruction;
-	size_t entryPoint;
+public:
+	size_t m_stackSize;
+	std::vector<byte> m_dataStorage;
+	std::vector<code::Code> m_instruction;
+	size_t m_entryPoint;
 };

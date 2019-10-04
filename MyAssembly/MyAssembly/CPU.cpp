@@ -503,6 +503,8 @@ void CPU::assign(const size_t extension, const size_t lOper, const size_t rOper)
 	}
 	case code::Extensions::DWORD:
 	{
+		assert(!(lOper % 4 || rOper % 4));
+
 		dword* dw1 = reinterpret_cast<dword*>(&m_CPUaddressRegisters.aReg[lOper - code::addressRegsStartPos]);
 		*dw1 = rOper;
 		

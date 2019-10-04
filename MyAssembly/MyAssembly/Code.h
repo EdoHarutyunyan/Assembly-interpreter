@@ -12,7 +12,7 @@ class Code
 {
 public:
 	explicit Code(size_t opcode);
-	Code(size_t opcode, std::string reg);
+	Code(size_t opcode, const std::string& reg);
 	~Code() = default;
 
 	void SourceCodeGenerator(
@@ -34,7 +34,7 @@ public:
 	size_t getlOper()const;
 	size_t getrOper()const;
 
-	static std::unordered_map<std::string, size_t> extTable;
+	static std::unordered_map<std::string, size_t> extensionTable;
 
 private:
 	size_t regInit(const std::string& reg);
@@ -44,7 +44,6 @@ private:
 	size_t m_extension;
 	size_t m_lOper;
 	size_t m_rOper;
-
 };
 
 enum Extensions
@@ -106,7 +105,38 @@ enum Registers
 	R28,
 	R29,
 	R30,
-	//...
+	R31,
+	R32,
+	R33,
+	R34,
+	R35,
+	R36,
+	R37,
+	R38,
+	R39,
+	R40,
+	R41,
+	R42,
+	R43,
+	R44,
+	R45,
+	R46,
+	R47,
+	R48,
+	R49,
+	R50,
+	R51,
+	R52,
+	R53,
+	R54,
+	R55,
+	R56,
+	R57,
+	R58,
+	R59,
+	R60,
+	R61,
+	R62,
 	R63,
 
 	//Address Registers

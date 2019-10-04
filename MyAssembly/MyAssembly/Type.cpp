@@ -26,7 +26,7 @@ void UpdateTypeTable(const std::string& identifier, const size_t offset)
 	ss >> firstSimbol;
 
 	// check if the name of the variable which was defined in data part 
-	// is the same as the name one  of the registres it will throw an exception
+	// is the same as the name one of the registres it will throw an exception
 	if (firstSimbol == 'A')
 	{
 		ss >> secondSimbol;
@@ -47,7 +47,7 @@ void UpdateTypeTable(const std::string& identifier, const size_t offset)
 		ss >> secondSimbol;
 		if (ss.eof())
 		{
-			if (secondSimbol >= 0 && secondSimbol <= 7)
+			if (secondSimbol >= 0 && secondSimbol <= 63)
 			{
 				throw std::invalid_argument("Invalid identifier : " + identifier);
 			}
