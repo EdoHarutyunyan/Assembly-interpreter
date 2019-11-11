@@ -21,29 +21,29 @@ Code::Code(const size_t opcode, const std::string& reg)
 	, m_extension{ DWORD }
 	, m_lOper{}
 {
-	m_lOper = regInit(reg);
+	m_lOper = RegInit(reg);
 }
 
 void Code::SourceCodeGenerator(const std::vector<std::string>& tokens, std::set<std::string>& funcDeclaration,
 	std::unordered_map<std::string, size_t>& funcDefinition)
 {
-	if (setExtension(tokens[1]))
+	if (SetExtension(tokens[1]))
 	{
 		assert(tokens.size() == 4);
 		
-		setlOper(tokens[2]);
-		setrOper(tokens[3], funcDeclaration, funcDefinition);
+		SetlOper(tokens[2]);
+		SetrOper(tokens[3], funcDeclaration, funcDefinition);
 	}
 	else // if not given extension, the default is exactly DW
 	{
 		assert(tokens.size() == 3);
 		
-		setlOper(tokens[1]);
-		setrOper(tokens[2], funcDeclaration, funcDefinition);
+		SetlOper(tokens[1]);
+		SetrOper(tokens[2], funcDeclaration, funcDefinition);
 	}
 }
 
-bool Code::setExtension(const std::string& ext)
+bool Code::SetExtension(const std::string& ext)
 {
 	auto findIt = extensionTable.find(ext);
 	if (findIt != extensionTable.end())
@@ -55,12 +55,12 @@ bool Code::setExtension(const std::string& ext)
 	return false;
 }
 
-void Code::setlOper(const std::string& reg)
+void Code::SetlOper(const std::string& reg)
 {
-	m_lOper = regInit(reg);
+	m_lOper = RegInit(reg);
 }
 
-void Code::setlOper(const std::string& lOper, std::map<std::string, size_t>& labels)
+void Code::SetlOper(const std::string& lOper, std::map<std::string, size_t>& labels)
 {
 	auto it = labels.find(lOper);
 
@@ -74,7 +74,7 @@ void Code::setlOper(const std::string& lOper, std::map<std::string, size_t>& lab
 	}
 }
 
-void Code::setrOper(const std::string& rOp, std::set<std::string>& funcDeclaration,
+void Code::SetrOper(const std::string& rOp, std::set<std::string>& funcDeclaration,
 	std::unordered_map<std::string, size_t>& funcDefinition)
 {
 	auto table_it = type::type_table.find(rOp);
@@ -102,42 +102,42 @@ void Code::setrOper(const std::string& rOp, std::set<std::string>& funcDeclarati
 	}
 	else
 	{
-		m_rOper = regInit(rOp);
+		m_rOper = RegInit(rOp);
 	}
 
 }
 
-void Code::setrOper(const size_t index)
+void Code::SetrOper(const size_t index)
 {
 	m_rOper = index;
 }
 
-void Code::setlOper(const size_t index)
+void Code::SetlOper(const size_t index)
 {
 	m_lOper = index;
 }
 
-size_t Code::getOpcode() const
+size_t Code::GetOpcode() const
 {
 	return m_opcode;
 }
 
-size_t Code::getExtension() const
+size_t Code::GetExtension() const
 {
 	return m_extension;
 }
 
-size_t Code::getlOper() const
+size_t Code::GetlOper() const
 {
 	return m_lOper;
 }
 
-size_t Code::getrOper() const
+size_t Code::GetrOper() const
 {
 	return m_rOper;
 }
 
-size_t Code::regInit(const std::string& reg)
+size_t Code::RegInit(const std::string& reg)
 {
 	std::stringstream ss;
 	char firstSimbol;

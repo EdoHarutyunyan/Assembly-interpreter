@@ -20,24 +20,24 @@ public:
 		std::set<std::string>& funcDeclaration,
 		std::unordered_map<std::string, size_t>& funcDefinition);
 
-	bool setExtension(const std::string& ext);
-	void setlOper(const std::string& reg);
-	void setlOper(const std::string& lOper, std::map<std::string, size_t>& labels);
-	void setrOper(const std::string& rOp, std::set<std::string>& funcDeclaration,
+	bool SetExtension(const std::string& ext);
+	void SetlOper(const std::string& reg);
+	void SetlOper(const std::string& lOper, std::map<std::string, size_t>& labels);
+	void SetrOper(const std::string& rOp, std::set<std::string>& funcDeclaration,
 		std::unordered_map<std::string, size_t>& funcDefinition);
 	
-	void setrOper(size_t index);
-	void setlOper(size_t index);
+	void SetrOper(size_t index);
+	void SetlOper(size_t index);
 
-	size_t getOpcode()const;
-	size_t getExtension()const;
-	size_t getlOper()const;
-	size_t getrOper()const;
+	size_t GetOpcode()const;
+	size_t GetExtension()const;
+	size_t GetlOper()const;
+	size_t GetrOper()const;
 
 	static std::unordered_map<std::string, size_t> extensionTable;
 
 private:
-	size_t regInit(const std::string& reg);
+	size_t RegInit(const std::string& reg);
 
 private:
 	size_t m_opcode;

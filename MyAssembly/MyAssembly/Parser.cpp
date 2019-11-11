@@ -281,21 +281,45 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 	{
 		split(codeSegment[i], tokens);
 
-		if (tokens[0] == "Func") // Is Function
+		if (tokens[0] == "Func") // is function
 		{
-			if (tokens[1].back() == ';') // declaration
+			if (tokens[1].back() == ';') // forward declaration
 			{
 				tokens[1].pop_back();
 				funcDeclaration.insert(tokens[1]);
 			}
-			else // definition
+			else if (tokens[1].back() == ':') // definition
 			{
-				auto it = funcDefinition.find(tokens[1]);
+				auto def_it = funcDefinition.find(tokens[1]);
 
-				if (it != funcDefinition.end())
+				// if operand is a function definition and was declared earlier
+				m_result.m_instruction[def_it->second].SetrOper(i);
+
+				if (def_it != funcDefinition.end())
 				{
-					//if operand is a function definition and was declared earlier
-					m_result.m_instruction[it->second].setrOper(i);
+					throw std::invalid_argument(tokens[1] + "redefinition");
+				}
+				else
+				{
+					tokens[1].pop_back();
+					funcDefinition.insert({ tokens[1], i });
+				}
+			}
+			else
+			{
+				auto dec_it = funcDeclaration.find(tokens[1]);
+				auto def_it = funcDefinition.find(tokens[1]);
+
+				// if operand is a function definition and was declared earlier
+				m_result.m_instruction[def_it->second].SetrOper(i);
+
+				if (dec_it != funcDeclaration.end())
+				{
+					throw std::invalid_argument("Identifier " + tokens[1] + " is undefined");
+				}
+				else if (def_it != funcDefinition.end())
+				{
+					throw std::invalid_argument(tokens[1] + "redefinition");
 				}
 				else
 				{
@@ -313,8 +337,8 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 			auto it = labels.find(tokens[0]);
 			if (it != labels.end())
 			{
-				//if operand is a label and was declared earlier
-				m_result.m_instruction[it->second].setlOper(i);
+				// if operand is a label and was declared earlier
+				m_result.m_instruction[it->second].SetlOper(i);
 			}
 			else
 			{
