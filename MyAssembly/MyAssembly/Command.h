@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 
 namespace command
 {
@@ -64,4 +65,4 @@ void mapInit(std::map<std::string, size_t>& comMap);
 
 extern std::map<std::string, size_t> labelMap;
 
-}//namespace command
+} // namespace command
