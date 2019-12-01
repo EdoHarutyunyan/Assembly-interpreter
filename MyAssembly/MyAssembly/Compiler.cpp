@@ -20,12 +20,19 @@ Compiler::~Compiler()
 
 void Compiler::Start()
 {
-	m_parser->Start(m_fileManager->ReadFromFile());
+	const std::string fileName = m_fileManager->GetFileName();
+	m_parser->Start(m_fileManager->ReadFromFile(fileName));
 }
 
-ParsedFile Compiler::getParsingResult() const
+void Compiler::ParsedResultToBynaryFile()
 {
-	return m_parser->getResult();
+	m_fileManager->ToBynary(m_parser->GetResult());
+}
+
+std::vector<std::string> Compiler::GetBynaryFile() const
+{
+	const std::string bynaryFileName = m_fileManager->GetBynaryFileName();
+	return m_fileManager->ReadFromFile(bynaryFileName);
 }
 
 }//namespace compiler

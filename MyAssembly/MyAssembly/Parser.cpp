@@ -30,8 +30,10 @@ void Parser::Start(const std::vector<std::string>& file)
 
 	StackSizeParser(stackSizeSegment);
 	DataParser(dataSegment);
-	CodeParser(codeSegment);
-	EntryPointParser(entryPointSegment);
+
+	// We must return the function definition map to initialize the entry point.
+	const std::unordered_map<std::string, size_t> funcDefinitionMap = CodeParser(codeSegment);
+	EntryPointParser(entryPointSegment, funcDefinitionMap);
 }
 
 void Parser::StackSizeParser(const std::string& stackSizeSegment)
@@ -53,14 +55,21 @@ void Parser::DataParser(const std::vector<std::string>& dataSegment)
 	}
 }
 
-void Parser::EntryPointParser(const std::string& entryPointSegment)
+void Parser::EntryPointParser(const std::string& entryPointSegment, 
+	const std::unordered_map<std::string, size_t>& funcDefinitionMap)
 {
 	const size_t pos = entryPointSegment.find_last_of(' ');
 	const size_t count = entryPointSegment.length() - pos;
-	m_result.m_entryPoint = std::atoi(entryPointSegment.substr(pos, count).c_str());
+	std::string s = entryPointSegment.substr(pos + 1, count).c_str();
+	auto it = funcDefinitionMap.find(s);
+
+	if (it != funcDefinitionMap.end())
+	{
+		m_result.m_entryPoint = it->second;
+	}
 }
 
-ParsedFile Parser::getResult() const
+ParsedFile Parser::GetResult() const
 {
 	return m_result;
 }
@@ -119,7 +128,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	{
 		if (tokens.size() > 2) // if given initial value
 		{
-			std::string initialString = tokens[3].substr(1, tokens[3].length() - 2); // delete '' and ""
+			std::string initialString = tokens[3].substr(1, tokens[3].length() - 2); // delete '' or ""
 
 			// initialize by given value
 			for (size_t i = 0; i < initialString.length(); ++i)
@@ -261,7 +270,7 @@ size_t Parser::DetermineOffsetSize(const std::vector<std::string>& tokens, std::
 	return offsetFactor;
 }
 
-void Parser::CodeParser(const std::vector<std::string>& codeSegment)
+std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std::string>& codeSegment)
 {
 	using namespace command;
 
@@ -629,6 +638,8 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 
 		tokens.clear();
 	}
+
+	return funcDefinition;
 }
 
 void split(const std::string& line, std::vector<std::string>& res)

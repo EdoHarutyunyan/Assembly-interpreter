@@ -19,10 +19,10 @@ void ExecutionManager::Start()
 {
 	m_compiler->Start();
 
-	const ParsedFile parsingResult = m_compiler->getParsingResult();
+	const std::vector<std::string> bynaryFile = m_compiler->GetBynaryFile();
 
-	m_interpreter = new interpreter::Interpreter(parsingResult);
-	m_interpreter->Start(parsingResult.m_entryPoint);
+	//m_interpreter = new interpreter::Interpreter(bynaryFile);
+	//m_interpreter->Start(parsingResult.m_entryPoint);
 }
 
 }// namespace manager

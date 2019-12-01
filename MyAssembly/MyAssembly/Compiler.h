@@ -14,7 +14,9 @@ public:
 	~Compiler();
 
 	void Start();
-	ParsedFile getParsingResult() const;
+
+	void ParsedResultToBynaryFile();
+	std::vector<std::string> GetBynaryFile() const;
 
 private:
 	filemanager::FileManager* m_fileManager;

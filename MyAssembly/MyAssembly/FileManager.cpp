@@ -5,10 +5,13 @@
 namespace filemanager
 {
 
-FileManager::FileManager(const std::string &file_name)
-	: m_file{file_name, std::ifstream::in | std::ofstream::out}
+FileManager::FileManager(const std::string &fileName)
+	: m_fileName(fileName)
+	, m_bynaryFileName("BynaryFile")
+	, m_file{ m_fileName, std::ifstream::in | std::ofstream::out }
+	, m_bynaryFile{ m_bynaryFileName, std::ifstream::in | std::ofstream::out }
 {
-	if (!m_file.is_open())
+	if (!m_file.is_open() || !m_bynaryFile.is_open())
 	{
 		std::cerr << "Error opening file" << std::endl;
 	}
@@ -17,12 +20,15 @@ FileManager::FileManager(const std::string &file_name)
 FileManager::~FileManager()
 {
 	m_file.close();
+	m_bynaryFile.close();
 }
 
-std::vector<std::string> FileManager::ReadFromFile()
+std::vector<std::string> FileManager::ReadFromFile(const std::string& name)
 {
 	std::vector<std::string> file;
 	std::string line;
+
+
 
 	while (getline(m_file, line))
 	{
@@ -38,6 +44,16 @@ void FileManager::WriteToFile(const std::vector<std::string>& lines)
 	{
 		m_file << line << std::endl;
 	}
+}
+
+std::string FileManager::GetFileName() const
+{
+	return m_fileName;
+}
+
+std::string FileManager::GetBynaryFileName() const
+{
+	return m_bynaryFileName;
 }
 
 }//namespace filemanager

@@ -29,10 +29,10 @@ public:
 	void setrOper(size_t index);
 	void setlOper(size_t index);
 
-	size_t getOpcode()const;
-	size_t getExtension()const;
-	size_t getlOper()const;
-	size_t getrOper()const;
+	size_t getOpcode() const;
+	size_t getExtension() const;
+	size_t getlOper() const;
+	size_t getrOper() const;
 
 	static std::unordered_map<std::string, size_t> extensionTable;
 

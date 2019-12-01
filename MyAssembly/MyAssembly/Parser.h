@@ -15,10 +15,12 @@ public:
 
 	void StackSizeParser(const std::string& stackSizeSegment);
 	void DataParser(const std::vector<std::string>& dataSegment);
-	void CodeParser(const std::vector<std::string>& codeSegment);
-	void EntryPointParser(const std::string& entryPointSegment);
+	std::unordered_map<std::string, size_t> CodeParser(const std::vector<std::string>& codeSegment);
+	void EntryPointParser(
+		const std::string& entryPointSegment, 
+		const std::unordered_map<std::string, size_t>& funcDefinitionMap);
 
-	ParsedFile getResult() const;
+	ParsedFile GetResult() const;
 
 private:
 	void DevideIntoParts(

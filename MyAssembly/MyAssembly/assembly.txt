@@ -3,7 +3,7 @@
 .DATA
 BYTE x = 3
 BYTE b = 20
-DWORD sas[56] = 45,87,200,15
+DWORD sas[10] = 45,87,200,15
 QWORD q
 CHAR str1[] = "HELLO WORLD"
 CHAR c = 's'
@@ -26,4 +26,4 @@ Func Start:
     RET
 END
 
-.START = MAIN
+.START = Start
