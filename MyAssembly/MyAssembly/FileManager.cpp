@@ -8,42 +8,48 @@ namespace filemanager
 FileManager::FileManager(const std::string &fileName)
 	: m_fileName(fileName)
 	, m_bynaryFileName("BynaryFile")
-	, m_file{ m_fileName, std::ifstream::in | std::ofstream::out }
-	, m_bynaryFile{ m_bynaryFileName, std::ifstream::in | std::ofstream::out }
 {
-	if (!m_file.is_open() || !m_bynaryFile.is_open())
-	{
-		std::cerr << "Error opening file" << std::endl;
-	}
-}
-
-FileManager::~FileManager()
-{
-	m_file.close();
-	m_bynaryFile.close();
 }
 
 std::vector<std::string> FileManager::ReadFromFile(const std::string& name)
 {
+	std::ifstream fin(name);
 	std::vector<std::string> file;
 	std::string line;
 
+	if (!fin.is_open())
+	{
+		std::cerr << "FileManager::ReadFromFile(): Problem during open " << name << " file.";
+	}
 
-
-	while (getline(m_file, line))
+	while (getline(fin, line))
 	{
 		file.push_back(line);
 	}
 
+	fin.close();
 	return file;
 }
 
-void FileManager::WriteToFile(const std::vector<std::string>& lines)
+void FileManager::WriteToFile(const std::string& name, const std::vector<std::string>& lines)
 {
+	std::ofstream fout(name);
+	
+	if (!fout.is_open())
+	{
+		std::cerr << "FileManager::WriteToFile(): Problem during open " << name << " file.";
+	}
+
 	for (const auto &line : lines)
 	{
-		m_file << line << std::endl;
+		fout << line << std::endl;
 	}
+
+	fout.close();
+}
+
+void FileManager::ToBynary(const ParsedFile& parsedResult)
+{
 }
 
 std::string FileManager::GetFileName() const
@@ -56,4 +62,4 @@ std::string FileManager::GetBynaryFileName() const
 	return m_bynaryFileName;
 }
 
-}//namespace filemanager
+} // namespace filemanager

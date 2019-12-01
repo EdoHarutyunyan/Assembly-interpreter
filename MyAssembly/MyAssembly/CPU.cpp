@@ -20,41 +20,41 @@ void CPU::Execute(const size_t entryPoint, std::vector<code::Code> instruction)
 
 	while(true)
 	{
-		switch (instruction[m_ip].getOpcode())
+		switch (instruction[m_ip].GetOpcode())
 		{
 		case commandKeys::eASSIGN:
 		{
-			assign(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			assign(instruction[m_ip].GetExtension(), instruction[m_ip].GetlOper(), instruction[m_ip].GetrOper());
 			break;
 		}
 		case commandKeys::eADD:
 		{
-			add(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			add(instruction[m_ip].GetExtension(), instruction[m_ip].GetlOper(), instruction[m_ip].GetrOper());
 			break;
 		}
 		case commandKeys::eSUB:
 		{
-			sub(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			sub(instruction[m_ip].GetExtension(), instruction[m_ip].GetlOper(), instruction[m_ip].GetrOper());
 			break;
 		}
 		case commandKeys::eMUL:
 		{
-			mul(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			mul(instruction[m_ip].GetExtension(), instruction[m_ip].GetlOper(), instruction[m_ip].GetrOper());
 			break;
 		}
 		case commandKeys::eDIV:
 		{
-			div(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			div(instruction[m_ip].GetExtension(), instruction[m_ip].GetlOper(), instruction[m_ip].GetrOper());
 			break;
 		}
 		case commandKeys::eSTORE:
 		{
-			store(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			store(instruction[m_ip].GetExtension(), instruction[m_ip].GetlOper(), instruction[m_ip].GetrOper());
 			break;
 		}
 		case commandKeys::eLOAD:
 		{
-			load(instruction[m_ip].getExtension(), instruction[m_ip].getlOper(), instruction[m_ip].getrOper());
+			load(instruction[m_ip].GetExtension(), instruction[m_ip].GetlOper(), instruction[m_ip].GetrOper());
 			break;
 		}
 		case commandKeys::eEND:

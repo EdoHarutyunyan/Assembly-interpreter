@@ -15,7 +15,6 @@ public:
 
 	void Start();
 
-	void ParsedResultToBynaryFile();
 	std::vector<std::string> GetBynaryFile() const;
 
 private:
@@ -23,4 +22,4 @@ private:
 	parser::Parser* m_parser;
 };
 
-}//namespace compiler
+} // namespace compiler

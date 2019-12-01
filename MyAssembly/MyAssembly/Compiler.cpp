@@ -22,10 +22,7 @@ void Compiler::Start()
 {
 	const std::string fileName = m_fileManager->GetFileName();
 	m_parser->Start(m_fileManager->ReadFromFile(fileName));
-}
 
-void Compiler::ParsedResultToBynaryFile()
-{
 	m_fileManager->ToBynary(m_parser->GetResult());
 }
 

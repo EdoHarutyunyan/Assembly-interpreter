@@ -14,11 +14,11 @@ class FileManager
 public:
 	explicit FileManager(const std::string& fileName);
 
-	~FileManager();
+	~FileManager() = default;
 
 	std::vector<std::string> ReadFromFile(const std::string& name);
 
-	void WriteToFile(const std::vector<std::string>& lines);
+	void WriteToFile(const std::string& name, const std::vector<std::string>& lines);
 
 	void ToBynary(const ParsedFile& parsedResult);
 
