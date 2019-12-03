@@ -81,7 +81,7 @@ void Parser::DevideIntoParts(
 	std::vector<std::string>& codeSegment,
 	std::string& entryPoint)
 {
-	size_t breakPoint;
+	size_t breakPoint = 0u;
 
 	stackSize = file[0]; // Size of stack
 
@@ -301,9 +301,6 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 			{
 				auto def_it = funcDefinition.find(tokens[1]);
 
-				// if operand is a function definition and was declared earlier
-				m_result.m_instruction[def_it->second].SetrOper(i);
-
 				if (def_it != funcDefinition.end())
 				{
 					throw std::invalid_argument(tokens[1] + "redefinition");
@@ -311,7 +308,7 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 				else
 				{
 					tokens[1].pop_back();
-					funcDefinition.insert({ tokens[1], i });
+					funcDefinition.insert({ tokens[1], i + 1 + m_result.m_dataStorage.size() });
 				}
 			}
 			else
@@ -319,10 +316,7 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 				auto dec_it = funcDeclaration.find(tokens[1]);
 				auto def_it = funcDefinition.find(tokens[1]);
 
-				// if operand is a function definition and was declared earlier
-				m_result.m_instruction[def_it->second].SetrOper(i);
-
-				if (dec_it != funcDeclaration.end())
+				if (dec_it == funcDeclaration.end())
 				{
 					throw std::invalid_argument("Identifier " + tokens[1] + " is undefined");
 				}
@@ -332,8 +326,10 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 				}
 				else
 				{
+					m_result.m_instruction[def_it->second].SetROper(i);
+
 					tokens[1].pop_back();
-					funcDefinition.insert({ tokens[1], i });
+					funcDefinition.insert({ tokens[1], i + 1 + m_result.m_dataStorage.size() });
 				}
 			}
 			tokens.clear();
@@ -347,7 +343,7 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 			if (it != labels.end())
 			{
 				// if operand is a label and was declared earlier
-				m_result.m_instruction[it->second].SetlOper(i);
+				m_result.m_instruction[it->second].SetLOper(i);
 			}
 			else
 			{

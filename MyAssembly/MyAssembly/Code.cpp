@@ -31,15 +31,15 @@ void Code::SourceCodeGenerator(const std::vector<std::string>& tokens, std::set<
 	{
 		assert(tokens.size() == 4);
 		
-		SetlOper(tokens[2]);
-		SetrOper(tokens[3], funcDeclaration, funcDefinition);
+		SetLOper(tokens[2]);
+		SetROper(tokens[3], funcDeclaration, funcDefinition);
 	}
 	else // if not given extension, the default is exactly DW
 	{
 		assert(tokens.size() == 3);
 		
-		SetlOper(tokens[1]);
-		SetrOper(tokens[2], funcDeclaration, funcDefinition);
+		SetLOper(tokens[1]);
+		SetROper(tokens[2], funcDeclaration, funcDefinition);
 	}
 }
 
@@ -55,12 +55,12 @@ bool Code::SetExtension(const std::string& ext)
 	return false;
 }
 
-void Code::SetlOper(const std::string& reg)
+void Code::SetLOper(const std::string& reg)
 {
 	m_lOper = RegInit(reg);
 }
 
-void Code::SetlOper(const std::string& lOper, std::map<std::string, size_t>& labels)
+void Code::SetLOper(const std::string& lOper, std::map<std::string, size_t>& labels)
 {
 	auto it = labels.find(lOper);
 
@@ -74,7 +74,7 @@ void Code::SetlOper(const std::string& lOper, std::map<std::string, size_t>& lab
 	}
 }
 
-void Code::SetrOper(const std::string& rOp, std::set<std::string>& funcDeclaration,
+void Code::SetROper(const std::string& rOp, std::set<std::string>& funcDeclaration,
 	std::unordered_map<std::string, size_t>& funcDefinition)
 {
 	auto table_it = type::type_table.find(rOp);
@@ -107,12 +107,12 @@ void Code::SetrOper(const std::string& rOp, std::set<std::string>& funcDeclarati
 
 }
 
-void Code::SetrOper(const size_t index)
+void Code::SetROper(const size_t index)
 {
 	m_rOper = index;
 }
 
-void Code::SetlOper(const size_t index)
+void Code::SetLOper(const size_t index)
 {
 	m_lOper = index;
 }

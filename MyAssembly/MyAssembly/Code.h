@@ -21,25 +21,18 @@ public:
 		std::unordered_map<std::string, size_t>& funcDefinition);
 
 	bool SetExtension(const std::string& ext);
-	void SetlOper(const std::string& reg);
-	void SetlOper(const std::string& lOper, std::map<std::string, size_t>& labels);
-	void SetrOper(const std::string& rOp, std::set<std::string>& funcDeclaration,
+	void SetLOper(const std::string& reg);
+	void SetLOper(const std::string& lOper, std::map<std::string, size_t>& labels);
+	void SetROper(const std::string& rOp, std::set<std::string>& funcDeclaration,
 		std::unordered_map<std::string, size_t>& funcDefinition);
 	
-	void SetrOper(size_t index);
-	void SetlOper(size_t index);
+	void SetROper(size_t index);
+	void SetLOper(size_t index);
 
-<<<<<<< HEAD
-	size_t getOpcode() const;
-	size_t getExtension() const;
-	size_t getlOper() const;
-	size_t getrOper() const;
-=======
 	size_t GetOpcode()const;
 	size_t GetExtension()const;
 	size_t GetlOper()const;
 	size_t GetrOper()const;
->>>>>>> 12fa06382432ee76f4e01308a8f22d5978131c29
 
 	static std::unordered_map<std::string, size_t> extensionTable;
 
