@@ -40,7 +40,7 @@ void Parser::StackSizeParser(const std::string& stackSizeSegment)
 {
 	const size_t pos = stackSizeSegment.find_last_of(' ');
 	const size_t count = stackSizeSegment.length() - pos;
-	m_result.m_stackSize = std::atoi(stackSizeSegment.substr(pos, count).c_str());
+	m_parsedFile.m_stackSize = std::atoi(stackSizeSegment.substr(pos, count).c_str());
 }
 
 void Parser::DataParser(const std::vector<std::string>& dataSegment)
@@ -53,6 +53,8 @@ void Parser::DataParser(const std::vector<std::string>& dataSegment)
 		WriteDataToDataStorage(tokens);
 		tokens.clear();
 	}
+
+	m_parsedFile.m_dataStorage.resize(m_offset);
 }
 
 void Parser::EntryPointParser(const std::string& entryPointSegment, 
@@ -65,13 +67,13 @@ void Parser::EntryPointParser(const std::string& entryPointSegment,
 
 	if (it != funcDefinitionMap.end())
 	{
-		m_result.m_entryPoint = it->second;
+		m_parsedFile.m_entryPoint = it->second;
 	}
 }
 
 ParsedFile Parser::GetResult() const
 {
-	return m_result;
+	return m_parsedFile;
 }
 
 void Parser::DevideIntoParts(
@@ -133,7 +135,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 			// initialize by given value
 			for (size_t i = 0; i < initialString.length(); ++i)
 			{
-				byte* b = &m_result.m_dataStorage[m_offset];
+				byte* b = &m_parsedFile.m_dataStorage[m_offset];
 
 				*b = initialString[i];
 				m_offset += sizeof(byte);
@@ -153,7 +155,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			byte* b = &m_result.m_dataStorage[m_offset];
+			byte* b = &m_parsedFile.m_dataStorage[m_offset];
 			*b = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(byte);
 		}
@@ -163,7 +165,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			byte* b = &m_result.m_dataStorage[m_offset];
+			byte* b = &m_parsedFile.m_dataStorage[m_offset];
 			*b = 0;
 			m_offset += sizeof(byte);
 		}
@@ -175,7 +177,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			word* w = reinterpret_cast<word*>(&m_result.m_dataStorage[m_offset]);
+			word* w = reinterpret_cast<word*>(&m_parsedFile.m_dataStorage[m_offset]);
 			*w = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(word);
 		}
@@ -185,7 +187,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			word* w = reinterpret_cast<word*>(&m_result.m_dataStorage[m_offset]);
+			word* w = reinterpret_cast<word*>(&m_parsedFile.m_dataStorage[m_offset]);
 			*w = 0;
 			m_offset += sizeof(word);
 		}
@@ -197,7 +199,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			dword* d = reinterpret_cast<dword*>(&m_result.m_dataStorage[m_offset]);
+			dword* d = reinterpret_cast<dword*>(&m_parsedFile.m_dataStorage[m_offset]);
 			*d = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(dword);
 		}
@@ -207,7 +209,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			dword* d = reinterpret_cast<dword*>(&m_result.m_dataStorage[m_offset]);
+			dword* d = reinterpret_cast<dword*>(&m_parsedFile.m_dataStorage[m_offset]);
 			*d = 0;
 			m_offset += sizeof(dword);
 		}
@@ -219,7 +221,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by given value
 		for (size_t i = 0; i < numInitList.size(); ++i)
 		{
-			qword* q = reinterpret_cast<qword*>(&m_result.m_dataStorage[m_offset]);
+			qword* q = reinterpret_cast<qword*>(&m_parsedFile.m_dataStorage[m_offset]);
 			*q = std::atoi(numInitList[i].c_str());
 			m_offset += sizeof(qword);
 		}
@@ -229,7 +231,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 		//initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
-			qword* q = reinterpret_cast<qword*>(&m_result.m_dataStorage[m_offset]);
+			qword* q = reinterpret_cast<qword*>(&m_parsedFile.m_dataStorage[m_offset]);
 			*q = 0;
 			m_offset += sizeof(qword);
 		}
@@ -308,7 +310,7 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 				else
 				{
 					tokens[1].pop_back();
-					funcDefinition.insert({ tokens[1], i + 1 + m_result.m_dataStorage.size() });
+					funcDefinition.insert({ tokens[1], i + 1 + m_parsedFile.m_dataStorage.size() });
 				}
 			}
 			else
@@ -326,10 +328,10 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 				}
 				else
 				{
-					m_result.m_instruction[def_it->second].SetROper(i);
+					m_parsedFile.m_instruction[def_it->second].SetROper(i);
 
 					tokens[1].pop_back();
-					funcDefinition.insert({ tokens[1], i + 1 + m_result.m_dataStorage.size() });
+					funcDefinition.insert({ tokens[1], i + 1 + m_parsedFile.m_dataStorage.size() });
 				}
 			}
 			tokens.clear();
@@ -343,7 +345,7 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 			if (it != labels.end())
 			{
 				// if operand is a label and was declared earlier
-				m_result.m_instruction[it->second].SetLOper(i);
+				m_parsedFile.m_instruction[it->second].SetLOper(i);
 			}
 			else
 			{
@@ -368,23 +370,23 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 		//}
 		case commandKeys::eEND:
 		{
-			m_result.m_instruction.push_back(code::Code(eEND));
+			m_parsedFile.m_instruction.push_back(code::Code(eEND));
 			break;
 		}
 		case commandKeys::eJUMP:
 		{
-			m_result.m_instruction.push_back(code::Code(eJUMP));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eJUMP));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eCALL:
 		{
-			m_result.m_instruction.push_back(code::Code(eCALL, tokens[1]));
+			m_parsedFile.m_instruction.push_back(code::Code(eCALL, tokens[1]));
 			break;
 		}
 		case commandKeys::eRET:
 		{
-			m_result.m_instruction.push_back(code::Code(eRET));
+			m_parsedFile.m_instruction.push_back(code::Code(eRET));
 			break;
 		}
 		//case commandKeys::eGFLR:
@@ -401,14 +403,14 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 		//}
 		case commandKeys::eLOAD:
 		{
-			m_result.m_instruction.push_back(code::Code(eLOAD));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eLOAD));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eSTORE:
 		{
-			m_result.m_instruction.push_back(code::Code(eSTORE));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eSTORE));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		//case commandKeys::eLDREL:
@@ -443,8 +445,8 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 		//}
 		case commandKeys::eASSIGN:
 		{
-			m_result.m_instruction.push_back(code::Code(eASSIGN));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eASSIGN));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		//case commandKeys::eSET:
@@ -587,50 +589,50 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 		//}
 		case commandKeys::eADD:
 		{
-			m_result.m_instruction.push_back(code::Code(eADD));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eADD));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eADC:
 		{
-			m_result.m_instruction.push_back(code::Code(eADC));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eADC));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eSUB:
 		{
-			m_result.m_instruction.push_back(code::Code(eSUB));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eSUB));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eSBB:
 		{
-			m_result.m_instruction.push_back(code::Code(eSBB));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eSBB));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eMUL:
 		{
-			m_result.m_instruction.push_back(code::Code(eMUL));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eMUL));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eIMUL:
 		{
-			m_result.m_instruction.push_back(code::Code(eIMUL));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eIMUL));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eDIV:
 		{
-			m_result.m_instruction.push_back(code::Code(eDIV));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eDIV));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		case commandKeys::eIDIV:
 		{
-			m_result.m_instruction.push_back(code::Code(eIDIV));
-			m_result.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFile.m_instruction.push_back(code::Code(eIDIV));
+			m_parsedFile.m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
 			break;
 		}
 		//case commandKeys::eNEG:

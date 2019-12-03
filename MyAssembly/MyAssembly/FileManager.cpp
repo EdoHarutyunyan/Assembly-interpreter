@@ -55,15 +55,15 @@ void FileManager::ToBynary(const ParsedFile& parsedResult)
 	std::vector<std::string> bynaryVector;
 	
 	const size_t endOfDataSegment = 2 + parsedResult.m_dataStorage.size();
-	bynaryVector.push_back(std::bitset<32>(endOfDataSegment).to_string()); // header of BynaryFile
-	bynaryVector.push_back(std::bitset<32>(parsedResult.m_stackSize).to_string());
+	bynaryVector.push_back(std::bitset<12>(endOfDataSegment).to_string()); // header of BynaryFile
+	bynaryVector.push_back(std::bitset<12>(parsedResult.m_stackSize).to_string());
 
 	for (const auto& data : parsedResult.m_dataStorage)
 	{
-		bynaryVector.push_back(std::bitset<32>(data).to_string());
+		bynaryVector.push_back(std::bitset<12>(data).to_string());
 	}
 
-	bynaryVector.push_back(std::bitset<32>(parsedResult.m_entryPoint).to_string());
+	bynaryVector.push_back(std::bitset<12>(parsedResult.m_entryPoint).to_string());
 
 	WriteToFile(GetBynaryFileName(), bynaryVector);
 }

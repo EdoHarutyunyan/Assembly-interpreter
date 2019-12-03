@@ -7,7 +7,7 @@ DWORD sas[10] = 45,87,200,15
 QWORD q
 CHAR str1[] = "HELLO WORLD"
 CHAR c = 's'
-BYTE a = 0x3ae
+BYTE a = 0x27
 
 .CODE
 Func Print;

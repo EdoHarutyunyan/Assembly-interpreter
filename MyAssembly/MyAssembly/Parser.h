@@ -34,7 +34,7 @@ private:
 
 private:
 	size_t m_offset;
-	ParsedFile m_result;
+	ParsedFile m_parsedFile;
 };
 
 void split(const std::string& line, std::vector<std::string>& res);
