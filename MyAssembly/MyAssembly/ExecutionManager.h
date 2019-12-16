@@ -1,21 +1,25 @@
 #pragma once
+#include <iostream>
+#include <vector>
 #include "Interpreter.h"
 #include "Compiler.h"
 
+
 namespace manager
 {
-
+	using InterpreterPtr = std::unique_ptr<interpreter::Interpreter>;
+	using CompilerPtr = std::unique_ptr<compiler::Compiler>;
 class ExecutionManager
 {
 public:
-	explicit ExecutionManager(const std::string& file);
-	~ExecutionManager();
+	explicit ExecutionManager(std::vector<std::string>&& files);
+	~ExecutionManager() = default;
 
 	void Start();
 
 private:
-	interpreter::Interpreter* m_interpreter;
-	compiler::Compiler* m_compiler;
+	InterpreterPtr m_interpreter;
+	CompilerPtr m_compiler;
 };
 
-}//namespace manager
+} // namespace manager

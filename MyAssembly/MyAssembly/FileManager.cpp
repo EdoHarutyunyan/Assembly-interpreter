@@ -1,27 +1,25 @@
 #include "FileManager.h"
 #include "ParsedFile.h"
-
 #include <iostream>
-#include <bitset>
 
 namespace filemanager
 {
 
-FileManager::FileManager(const std::string &fileName)
-	: m_fileName(fileName)
-	, m_bynaryFileName("BynaryFile.txt")
+FileManager::FileManager(std::vector<std::string>&& paths)
+	: m_paths(std::forward<std::vector<std::string>>(paths))
+	, m_bynaryFilePath("BynaryFile.bin")
 {
 }
 
-std::vector<std::string> FileManager::ReadFromFile(const std::string& name)
+std::vector<std::string> FileManager::ReadFromFile(const std::string& path)
 {
-	std::ifstream fin(name);
+	std::ifstream fin(path, std::ifstream::in | std::ifstream::binary);
 	std::vector<std::string> file;
 	std::string line;
 
 	if (!fin.is_open())
 	{
-		std::cerr << "FileManager::ReadFromFile(): Problem during open " << name << " file." << std::endl;
+		std::cerr << "FileManager::ReadFromFile(): Problem during open " << path << " file." << std::endl;
 	}
 
 	while (getline(fin, line))
@@ -33,13 +31,13 @@ std::vector<std::string> FileManager::ReadFromFile(const std::string& name)
 	return file;
 }
 
-void FileManager::WriteToFile(const std::string& name, const std::vector<std::string>& lines)
+void FileManager::WriteToFile(const std::string& path, const std::vector<std::string>& lines)
 {
-	std::ofstream fout(name);
+	std::ofstream fout(path);
 	
 	if (!fout.is_open())
 	{
-		std::cerr << "FileManager::WriteToFile(): Problem during open " << name << " file." << std::endl;
+		std::cerr << "FileManager::WriteToFile(): Problem during open " << path << " file." << std::endl;
 	}
 
 	for (const auto &line : lines)
@@ -52,30 +50,16 @@ void FileManager::WriteToFile(const std::string& name, const std::vector<std::st
 
 void FileManager::ToBynary(const ParsedFile& parsedResult)
 {
-	std::vector<std::string> bynaryVector;
-	
-	const size_t endOfDataSegment = 2 + parsedResult.m_dataStorage.size();
-	bynaryVector.push_back(std::bitset<12>(endOfDataSegment).to_string()); // header of BynaryFile
-	bynaryVector.push_back(std::bitset<12>(parsedResult.m_stackSize).to_string());
-
-	for (const auto& data : parsedResult.m_dataStorage)
-	{
-		bynaryVector.push_back(std::bitset<12>(data).to_string());
-	}
-
-	bynaryVector.push_back(std::bitset<12>(parsedResult.m_entryPoint).to_string());
-
-	WriteToFile(GetBynaryFileName(), bynaryVector);
+	//WriteToFile(GetBynaryFileName(), bynaryVector);
 }
 
-std::string FileManager::GetFileName() const
+std::vector<std::string> FileManager::GetPaths() const
 {
-	return m_fileName;
+	return m_paths;
 }
 
-std::string FileManager::GetBynaryFileName() const
+std::string FileManager::GetBynaryFilePath() const
 {
-	return m_bynaryFileName;
+	return m_bynaryFilePath;
 }
-
 } // namespace filemanager

@@ -1,20 +1,21 @@
 #pragma once
-
+#include <iostream>
 #include "VM.h"
 
 namespace interpreter
 {
-
+	using VMPtr = std::unique_ptr<virtualmachine::VM>;
 class Interpreter
 {
-public:
-	explicit Interpreter(const ParsedFile& parsingResult);
-	~Interpreter();
 
-	void Start(size_t entryPoint);
+public:
+	explicit Interpreter(/*const std::fstream& binaryFile*/);
+	~Interpreter() = default;
+
+	void Start();
 
 private:
-	virtualmachine::VM* vm;
+	VMPtr m_vm;
 };
 
 }//namespace interpreter

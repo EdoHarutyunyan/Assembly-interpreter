@@ -12,21 +12,21 @@ namespace filemanager
 class FileManager
 {
 public:
-	explicit FileManager(const std::string& fileName);
+	explicit FileManager(std::vector<std::string>&& paths);
 	~FileManager() = default;
 
-	std::vector<std::string> ReadFromFile(const std::string& name);
-	void WriteToFile(const std::string& name, const std::vector<std::string>& lines);
+	std::vector<std::string> ReadFromFile(const std::string& path);
+	void WriteToFile(const std::string& path, const std::vector<std::string>& lines);
 	
 	void ToBynary(const ParsedFile& parsedResult);
 
-	std::string GetFileName() const;
-	std::string GetBynaryFileName() const;
+	std::vector<std::string> GetPaths() const;
+	std::string GetBynaryFilePath() const;
 
 private:
-	std::string m_fileName;
-	std::string m_bynaryFileName;
-	std::fstream m_file;
+	std::vector<std::string> m_paths;
+	std::vector<std::fstream> m_files;
+	std::string m_bynaryFilePath;
 	std::fstream m_bynaryFile;
 };
 

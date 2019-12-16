@@ -3,19 +3,14 @@
 namespace interpreter
 {
 
-Interpreter::Interpreter(const ParsedFile& parsingResult)
-	: vm{ new virtualmachine::VM{parsingResult} }
+Interpreter::Interpreter(/*const std::fstream& binaryFile*/)
+	: m_vm(std::make_unique<virtualmachine::VM>())
 {
 }
 
-Interpreter::~Interpreter()
+void Interpreter::Start()
 {
-	delete vm;
+	//m_vm->Start(entryPoint);
 }
 
-void Interpreter::Start(const size_t entryPoint)
-{
-	vm->Start(entryPoint);
-}
-
-}//namespace interpreter
+} // namespace interpreter

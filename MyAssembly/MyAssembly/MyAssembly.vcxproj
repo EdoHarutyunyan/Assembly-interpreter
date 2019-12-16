@@ -124,6 +124,7 @@
     <ClCompile Include="ExecutionManager.cpp" />
     <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="Interpreter.cpp" />
+    <ClCompile Include="Linker.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
     <ClCompile Include="Parser.cpp" />
@@ -142,6 +143,7 @@
     <ClInclude Include="ExecutionManager.h" />
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="Interpreter.h" />
+    <ClInclude Include="Linker.h" />
     <ClInclude Include="Memory.h" />
     <ClInclude Include="ParsedFile.h" />
     <ClInclude Include="Parser.h" />

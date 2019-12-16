@@ -57,6 +57,9 @@
     <ClCompile Include="StatusRegisters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Linker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interpreter.h">
@@ -108,6 +111,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ParsedFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Linker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

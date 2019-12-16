@@ -3,26 +3,17 @@
 namespace manager
 {
 
-ExecutionManager::ExecutionManager(const std::string& file)
-	: m_interpreter{ nullptr }
-	, m_compiler{ new compiler::Compiler{file} }
+ExecutionManager::ExecutionManager(std::vector<std::string>&& files)
+	: m_interpreter(nullptr)
+	, m_compiler(std::make_unique<compiler::Compiler>(std::forward<std::vector<std::string>>(files)))
 {
-}
-
-ExecutionManager::~ExecutionManager()
-{
-	delete m_interpreter;
-	delete m_compiler;
 }
 
 void ExecutionManager::Start()
 {
-	m_compiler->Start();
+	//m_compiler->Start();
 
-	const std::vector<std::string> bynaryFile = m_compiler->GetBynaryFile();
-
-	//m_interpreter = new interpreter::Interpreter(bynaryFile);
-	//m_interpreter->Start(parsingResult.m_entryPoint);
+	m_interpreter = std::make_unique<interpreter::Interpreter>();
 }
 
-}// namespace manager
+} // namespace manager
