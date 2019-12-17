@@ -7,12 +7,14 @@
 
 namespace manager
 {
-	using InterpreterPtr = std::unique_ptr<interpreter::Interpreter>;
-	using CompilerPtr = std::unique_ptr<compiler::Compiler>;
+
+using InterpreterPtr = std::unique_ptr<interpreter::Interpreter>;
+using CompilerPtr = std::unique_ptr<compiler::Compiler>;
+
 class ExecutionManager
 {
 public:
-	explicit ExecutionManager(std::vector<std::string>&& files);
+	explicit ExecutionManager(std::vector<std::string>&& paths);
 	~ExecutionManager() = default;
 
 	void Start();

@@ -18,8 +18,6 @@ using namespace type;
 	
 void Parser::Start(const std::vector<std::string>& file)
 {
-	++m_indexOfParsingFile;
-
 	IsStackSize stackSizeSegment;
 	IsDataSegment dataSegment;
 	IsCodeSegment codeSegment;
@@ -37,17 +35,14 @@ void Parser::Start(const std::vector<std::string>& file)
 	}
 	if (std::get<0>(codeSegment))
 	{
-		// We must return the function definition map to initialize the entry point.
-		const std::unordered_map<std::string, size_t> funcDefinitionMap = CodeParser(std::get<1>(codeSegment));
-		if (std::get<0>(entryPointSegment))
-		{
-			EntryPointParser(std::get<1>(entryPointSegment), funcDefinitionMap);
-		}
-		else
-		{
-			throw new std::exception("Invalid file format.");
-		}
+		CodeParser(std::get<1>(codeSegment));
 	}
+	if (std::get<0>(entryPointSegment))
+	{
+		EntryPointParser(std::get<1>(entryPointSegment));
+	}
+
+	++m_indexOfParsingFile;
 }
 	
 void Parser::StackSizeParser(const std::string& stackSizeSegment)
@@ -71,15 +66,14 @@ void Parser::DataParser(const std::vector<std::string>& dataSegment)
 	m_parsedFiles[m_indexOfParsingFile].m_dataStorage.resize(m_offsets[m_indexOfParsingFile]);
 }
 	
-void Parser::EntryPointParser(const std::string& entryPointSegment, 
-	const std::unordered_map<std::string, size_t>& funcDefinitionMap)
+void Parser::EntryPointParser(const std::string& entryPointSegment)
 {
 	const size_t pos = entryPointSegment.find_last_of(' ');
 	const size_t count = entryPointSegment.length() - pos;
 	std::string s = entryPointSegment.substr(pos + 1, count).c_str();
-	auto it = funcDefinitionMap.find(s);
+	auto it = m_funcDefinitionMaps[m_indexOfParsingFile].find(s);
 	
-	if (it != funcDefinitionMap.end())
+	if (it != m_funcDefinitionMaps[m_indexOfParsingFile].end())
 	{
 		m_parsedFiles[m_indexOfParsingFile].m_entryPoint = it->second;
 	}
@@ -135,7 +129,9 @@ void Parser::DevideIntoParts(
 		}
 		if (file[i] == ".MAIN") // Code partition doesn't exist
 		{
-			throw new std::exception("Invalid file format.");
+			breakPoint = ++i;
+			entryPointExists = true;
+			break;
 		}
 	
 		data.push_back(file[i]);
@@ -169,7 +165,7 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	const size_t offsetFactor = DetermineOffsetSize(tokens, numInitList);
 	
 	// name -> offset
-	UpdateTypeTable(tokens[1], m_offsets[m_indexOfParsingFile]);
+	UpdateSymbolsTable(tokens[1], m_offsets[m_indexOfParsingFile]);
 	
 	switch (type_map[tokens[0]])
 	{
@@ -319,7 +315,7 @@ size_t Parser::DetermineOffsetSize(const std::vector<std::string>& tokens, std::
 	return offsetFactor;
 }
 	
-std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std::string>& codeSegment)
+void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 {
 	using namespace command;
 	
@@ -348,28 +344,28 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 			}
 			else if (tokens[1].back() == ':') // definition
 			{
-				auto def_it = funcDefinition.find(tokens[1]);
+				auto def_it = m_funcDefinitionMaps[m_indexOfParsingFile].find(tokens[1]);
 	
-				if (def_it != funcDefinition.end())
+				if (def_it != m_funcDefinitionMaps[m_indexOfParsingFile].end())
 				{
 					throw std::invalid_argument(tokens[1] + "redefinition");
 				}
 				else
 				{
 					tokens[1].pop_back();
-					funcDefinition.insert({ tokens[1], i + 1 + m_parsedFiles[m_indexOfParsingFile].m_dataStorage.size() });
+					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], i + 1 + m_parsedFiles[m_indexOfParsingFile].m_dataStorage.size() });
 				}
 			}
 			else
 			{
 				auto dec_it = funcDeclaration.find(tokens[1]);
-				auto def_it = funcDefinition.find(tokens[1]);
+				auto def_it = m_funcDefinitionMaps[m_indexOfParsingFile].find(tokens[1]);
 	
 				if (dec_it == funcDeclaration.end())
 				{
 					throw std::invalid_argument("Identifier " + tokens[1] + " is undefined");
 				}
-				else if (def_it != funcDefinition.end())
+				else if (def_it != m_funcDefinitionMaps[m_indexOfParsingFile].end())
 				{
 					throw std::invalid_argument(tokens[1] + "redefinition");
 				}
@@ -378,7 +374,7 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 					m_parsedFiles[m_indexOfParsingFile].m_instruction[def_it->second].SetROper(i);
 	
 					tokens[1].pop_back();
-					funcDefinition.insert({ tokens[1], i + 1 + m_parsedFiles[m_indexOfParsingFile].m_dataStorage.size() });
+					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], i + 1 + m_parsedFiles[m_indexOfParsingFile].m_dataStorage.size() });
 				}
 			}
 			tokens.clear();
@@ -423,7 +419,7 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 		case commandKeys::eJUMP:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eJUMP));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
 			break;
 		}
 		case commandKeys::eCALL:
@@ -451,13 +447,13 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 		case commandKeys::eLOAD:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eLOAD));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
 			break;
 		}
 		case commandKeys::eSTORE:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eSTORE));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
 			break;
 		}
 		//case commandKeys::eLDREL:
@@ -493,7 +489,7 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 		case commandKeys::eASSIGN:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eASSIGN));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
 			break;
 		}
 		//case commandKeys::eSET:
@@ -637,25 +633,25 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 		case commandKeys::eADD:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eADD));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
 			break;
 		}
 		case commandKeys::eADC:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eADC));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
 			break;
 		}
 		case commandKeys::eSUB:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eSUB));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
 			break;
 		}
 		case commandKeys::eSBB:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eSBB));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
 			break;
 		}
 		case commandKeys::eMUL:
@@ -707,8 +703,6 @@ std::unordered_map<std::string, size_t> Parser::CodeParser(const std::vector<std
 	
 		tokens.clear();
 	}
-	
-	return funcDefinition;
 }
 	
 void split(const std::string& line, std::vector<std::string>& res)

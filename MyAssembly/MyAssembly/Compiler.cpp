@@ -21,7 +21,7 @@ void Compiler::Start()
 		m_parser->Start(m_fileManager->ReadFromFile(path));
 	}
 	
-	m_linker = std::make_unique<linker::Linker>(m_parser);
+	m_linker = std::make_unique<linker::Linker>(std::move<std::weak_ptr<parser::Parser>>(m_parser));
 	ParsedFile parsedFile = std::forward<ParsedFile>(m_linker->ToLink());
 	//m_fileManager->ToBynary(m_parser->GetResult());
 }

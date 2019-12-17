@@ -77,18 +77,18 @@ void Code::SetLOper(const std::string& lOper, std::map<std::string, size_t>& lab
 void Code::SetROper(const std::string& rOp, std::set<std::string>& funcDeclaration,
 	std::unordered_map<std::string, size_t>& funcDefinition)
 {
-	auto table_it = type::type_table.find(rOp);
+	auto table_it = type::symbol_table.find(rOp);
 	auto dec_it = funcDeclaration.find(rOp);
 	auto def_it = funcDefinition.find(rOp);
 
-	if ((table_it != type::type_table.end()
+	if ((table_it != type::symbol_table.end()
 		&& dec_it != funcDeclaration.end())
-	 || (table_it != type::type_table.end()
+	 || (table_it != type::symbol_table.end()
 		&& def_it != funcDefinition.end()))
 	{
 		throw std::invalid_argument(rOp + ": redefinition");
 	}
-	if (table_it != type::type_table.end())
+	if (table_it != type::symbol_table.end())
 	{
 		m_rOper = table_it->second;
 	}

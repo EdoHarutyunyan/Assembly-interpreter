@@ -6,7 +6,7 @@
 namespace type
 {
 
-std::unordered_map<std::string, size_t> type_table;
+std::unordered_map<std::string, size_t> symbol_table;
 
 std::map<std::string, size_t> type_map = {
 	{ "CHAR", 0 },
@@ -16,11 +16,11 @@ std::map<std::string, size_t> type_map = {
 	{ "QWORD", 4 }
 };
 
-void UpdateTypeTable(const std::string& identifier, const size_t offset)
+void UpdateSymbolsTable(const std::string& identifier, const size_t offset)
 {
 	std::stringstream ss;
 	char firstSimbol;
-	size_t secondSimbol;
+	size_t secondSymbol;
 
 	ss << identifier;
 	ss >> firstSimbol;
@@ -29,11 +29,11 @@ void UpdateTypeTable(const std::string& identifier, const size_t offset)
 	// is the same as the name one of the registres it will throw an exception
 	if (firstSimbol == 'A')
 	{
-		ss >> secondSimbol;
+		ss >> secondSymbol;
 
 		if (ss.eof())
 		{
-			if (secondSimbol >= 0 && secondSimbol <= 7)
+			if (secondSymbol >= 0 && secondSymbol <= 7)
 			{
 				throw std::invalid_argument("Invalid identifier : " + identifier);
 			}
@@ -44,17 +44,17 @@ void UpdateTypeTable(const std::string& identifier, const size_t offset)
 
 	if (firstSimbol == 'R')
 	{
-		ss >> secondSimbol;
+		ss >> secondSymbol;
 		if (ss.eof())
 		{
-			if (secondSimbol >= 0 && secondSimbol <= 63)
+			if (secondSymbol >= 0 && secondSymbol <= 63)
 			{
 				throw std::invalid_argument("Invalid identifier : " + identifier);
 			}
 		}
 	}
 
-	type_table[identifier] = offset;
+	symbol_table[identifier] = offset;
 }
 
 Type to_enum(const size_t t)

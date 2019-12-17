@@ -4,11 +4,12 @@
 
 namespace linker
 {
-	using ParserPtr = std::shared_ptr<parser::Parser>;
+using ParserPtr = std::weak_ptr<parser::Parser>;
+
 class Linker
 {
 public:
-	Linker(const ParserPtr& parser);
+	Linker(ParserPtr&& parser);
 	~Linker() = default;
 
 	ParsedFile ToLink();

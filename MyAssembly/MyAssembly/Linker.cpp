@@ -3,15 +3,20 @@
 namespace linker
 {
 
-Linker::Linker(const ParserPtr& parser)
-	: m_parser(std::make_shared<parser::Parser>(parser))
+Linker::Linker(ParserPtr&& parser)
+	: m_parser(std::forward<ParserPtr>(parser))
 {
 }
 
 ParsedFile Linker::ToLink()
 {
-	//m_parser.lock();
-	parser::ParsedFiles parsedFiles = std::forward<std::vector<ParsedFile>>(m_parser->GetParsedFiles());
+	if (auto weakPtr = m_parser.lock())
+	{
+		parser::ParsedFiles parsedFiles = std::forward<parser::ParsedFiles>(weakPtr->GetParsedFiles());
+		// 2 checks
+		// 2 merges
+	}
+	return{};
 }
 
 } // namespace linker

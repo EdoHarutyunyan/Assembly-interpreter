@@ -4,7 +4,9 @@
 
 namespace interpreter
 {
-	using VMPtr = std::unique_ptr<virtualmachine::VM>;
+
+using VMPtr = std::unique_ptr<virtualmachine::VM>;
+
 class Interpreter
 {
 

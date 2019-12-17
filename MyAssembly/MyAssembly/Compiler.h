@@ -7,9 +7,11 @@
 
 namespace compiler
 {
-	using FileManagerPtr = std::unique_ptr<filemanager::FileManager>;
-	using ParserPtr = std::shared_ptr<parser::Parser>;
-	using LinkerPtr = std::unique_ptr<linker::Linker>;
+
+using FileManagerPtr = std::unique_ptr<filemanager::FileManager>;
+using ParserPtr = std::shared_ptr<parser::Parser>;
+using LinkerPtr = std::unique_ptr<linker::Linker>;
+
 class Compiler
 {
 public:
