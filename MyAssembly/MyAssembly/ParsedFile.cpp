@@ -53,7 +53,7 @@ void UpdateSymbolsTable(const std::string& identifier, const int offset, const s
 		}
 	}
 
-	symbol_tables[tableNumber][identifier] = offset;
+	symbol_tables[tableNumber].insert({ identifier, offset });
 }
 
 Type to_enum(const size_t t)

@@ -19,6 +19,7 @@ Parser::Parser(const size_t& parsingFilesCount)
 	, m_funcDefinitionMaps(parsingFilesCount)
 	, m_indexOfParsingFile(0u)
 {
+	symbol_tables.resize(parsingFilesCount);
 }
 
 void Parser::Start(const std::vector<std::string>& file)
@@ -410,7 +411,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 				else
 				{
 					tokens[1].pop_back();
-					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], i });
+					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], instructionIndex });
 				}
 			}
 			else
@@ -431,9 +432,10 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 					//m_parsedFiles[m_indexOfParsingFile].m_instruction[def_it->second].SetROper(i); 
 	
 					tokens[1].pop_back();
-					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], i });
+					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], instructionIndex });
 				}
-			}
+			} 
+			++instructionIndex;
 			tokens.clear();
 			continue;
 		}
@@ -757,7 +759,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 			assert(false);
 			break;
 		}
-	
+		++instructionIndex;
 		tokens.clear();
 	}
 }

@@ -20,6 +20,7 @@ ParsedFile Linker::ToLink()
 	
 	if (auto weakPtr = m_parser.lock())
 	{
+		parser::FuncDefinitionMaps funcDefinitionMaps = weakPtr->GetFuncDefinitionMaps();
 		parser::ParsedFiles parsedFiles = std::forward<parser::ParsedFiles>(weakPtr->GetParsedFiles());
 		
 		for (size_t i = 0; i < parsedFiles.size(); ++i)
@@ -39,7 +40,7 @@ ParsedFile Linker::ToLink()
 				throw new std::exception("Linker::ToLink(): StackSize not found.");
 			}
 
-
+			symbol_tables[i].reserve(6);
 			//for (size_t j = 0; j < symbol_tables[i].size(); j++)
 			//{
 			//	if(symbol_tables[i])
@@ -50,7 +51,7 @@ ParsedFile Linker::ToLink()
 			//}
 
 
-			//parser::FuncDefinitionMaps funcDefinitionMaps = weakPtr->GetFuncDefinitionMaps();
+
 
 
 			parsedFile.m_dataStorage.resize(dataSize + parsedFiles[i].m_dataStorage.size());
