@@ -382,7 +382,6 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 	using namespace command;
 	
 	std::vector<std::string> tokens;
-	//std::set<std::string /*name*/> funcDeclaration;
 	std::map<std::string /*labelName*/, size_t /*index*/> labels;
 	std::map<std::string /*commandName*/, size_t /*index*/> commandMap;
 	mapInit(commandMap);
@@ -536,6 +535,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		//case commandKeys::ePUSHA:
 		//{
 		//	m_instruction.push_back(code::Code());
+
 		//	m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition, ePUSHA);
 		//	break;
 		//}
@@ -759,6 +759,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 			assert(false);
 			break;
 		}
+
 		++instructionIndex;
 		tokens.clear();
 	}

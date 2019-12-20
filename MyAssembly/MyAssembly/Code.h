@@ -3,9 +3,37 @@
 #include "Command.h"
 
 #include <unordered_map>
+#include <iostream>
 
 namespace code
 {
+
+namespace arg
+{
+	
+enum class Type : uint8_t
+{
+	FromMemory = 0,
+	FromAddressRegister = 1,
+	FromGeneralPorposeRegister = 2
+};
+
+class Arg
+{
+public:
+	Arg() = default;
+	Arg(const std::string& arg);
+	
+	~Arg() = default;
+
+public:
+	Type m_type;
+	uint8_t m_operand;
+};
+
+} // namespace arg
+
+using ArgPtr = std::unique_ptr<arg::Arg>;
 
 class Code
 {
@@ -19,29 +47,28 @@ public:
 		std::unordered_map<std::string, size_t>& funcDefinition,
 		size_t indexOfParsingFile);
 
-	bool SetExtension(const std::string& ext);
-	void SetLOper(const std::string& reg);
-	void SetLOper(const std::string& lOper, std::map<std::string, size_t>& labels);
-	void SetROper(const std::string& rOp, std::unordered_map<std::string, size_t>& funcDefinition, size_t indexOfParsingFile);
+	bool SetExtension(const std::string& extension);
+	void SetLeftArg(const std::string& arg);
+	void SetLeftArg(const std::string& leftArg, std::map<std::string, size_t>& labels);
+	void SetRightArg(const std::string& rOp,
+		std::unordered_map<std::string, size_t>& funcDefinition,
+		size_t indexOfParsingFile);
 	
-	void SetROper(size_t index);
-	void SetLOper(size_t index);
+	void SetRightArg(size_t index);
+	void SetLeftArg(size_t index);
 
 	size_t GetOpcode() const;
 	size_t GetExtension() const;
-	size_t GetlOper() const;
-	size_t GetrOper() const;
+	arg::Arg GetLeftArg() const;
+	arg::Arg GetRightArg() const;
 
 	static std::unordered_map<std::string, size_t> extensionTable;
 
 private:
-	size_t RegInit(const std::string& reg);
-
-private:
 	size_t m_opcode;
 	size_t m_extension;
-	size_t m_lOper;
-	size_t m_rOper;
+	ArgPtr m_leftArg;
+	ArgPtr m_rightArg;
 };
 
 enum Extensions
@@ -69,9 +96,8 @@ enum Extensions
 	QWORD = 23
 };
 
-enum Registers
+enum GeneralPurposeRegisters
 {
-	// General purpose registers
 	R0 = 0,
 	R1,
 	R2,
@@ -135,19 +161,19 @@ enum Registers
 	R60,
 	R61,
 	R62,
-	R63,
-
-	//Address Registers
-	A0 = 70,
-	A1,
-	A2,
-	A3,
-	A4,
-	A5,
-	A6,
-	A7
+	R63
 };
 
-extern const size_t addressRegsStartPos;
+enum AddressRegisters
+{
+	A0 = 0,
+	A1 = 1,
+	A2 = 2,
+	A3 = 3,
+	A4 = 4,
+	A5 = 5,
+	A6 = 6,
+	A7 = 7
+};
 
-}//namespace code
+} // namespace code
