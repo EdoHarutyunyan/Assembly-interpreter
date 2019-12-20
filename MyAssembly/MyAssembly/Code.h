@@ -3,7 +3,6 @@
 #include "Command.h"
 
 #include <unordered_map>
-#include <set>
 
 namespace code
 {
@@ -17,22 +16,21 @@ public:
 
 	void SourceCodeGenerator(
 		const std::vector<std::string>& tokens,
-		std::set<std::string>& funcDeclaration,
-		std::unordered_map<std::string, size_t>& funcDefinition);
+		std::unordered_map<std::string, size_t>& funcDefinition,
+		size_t indexOfParsingFile);
 
 	bool SetExtension(const std::string& ext);
 	void SetLOper(const std::string& reg);
 	void SetLOper(const std::string& lOper, std::map<std::string, size_t>& labels);
-	void SetROper(const std::string& rOp, std::set<std::string>& funcDeclaration,
-		std::unordered_map<std::string, size_t>& funcDefinition);
+	void SetROper(const std::string& rOp, std::unordered_map<std::string, size_t>& funcDefinition, size_t indexOfParsingFile);
 	
 	void SetROper(size_t index);
 	void SetLOper(size_t index);
 
-	size_t GetOpcode()const;
-	size_t GetExtension()const;
-	size_t GetlOper()const;
-	size_t GetrOper()const;
+	size_t GetOpcode() const;
+	size_t GetExtension() const;
+	size_t GetlOper() const;
+	size_t GetrOper() const;
 
 	static std::unordered_map<std::string, size_t> extensionTable;
 

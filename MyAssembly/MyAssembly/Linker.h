@@ -12,7 +12,8 @@ public:
 	Linker(ParserPtr&& parser);
 	~Linker() = default;
 
-	ParsedFile ToLink();
+	parsedfile::ParsedFile ToLink();
+	std::unordered_map<std::string, size_t> ToLinkSymbolTables();
 
 private:
 	ParserPtr m_parser;

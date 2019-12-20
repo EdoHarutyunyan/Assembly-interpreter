@@ -13,7 +13,7 @@ FileManager::FileManager(std::vector<std::string>&& paths)
 
 std::vector<std::string> FileManager::ReadFromFile(const std::string& path)
 {
-	std::ifstream fin(path, std::ifstream::in | std::ifstream::binary);
+	std::ifstream fin(path, std::ifstream::in);
 	std::vector<std::string> file;
 	std::string line;
 
@@ -48,7 +48,7 @@ void FileManager::WriteToFile(const std::string& path, const std::vector<std::st
 	fout.close();
 }
 
-void FileManager::ToBynary(const ParsedFile& parsedResult)
+void FileManager::ToBynary(const parsedfile::ParsedFile& parsedResult)
 {
 	//WriteToFile(GetBynaryFileName(), bynaryVector);
 }

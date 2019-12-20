@@ -8,9 +8,9 @@
 namespace compiler
 {
 
-using FileManagerPtr = std::unique_ptr<filemanager::FileManager>;
-using ParserPtr = std::shared_ptr<parser::Parser>;
 using LinkerPtr = std::unique_ptr<linker::Linker>;
+using ParserPtr = std::shared_ptr<parser::Parser>;
+using FileManagerPtr = std::unique_ptr<filemanager::FileManager>;
 
 class Compiler
 {
@@ -22,9 +22,9 @@ public:
 
 	std::vector<std::string> GetBynaryFile() const;
 private:
-	FileManagerPtr m_fileManager;
-	ParserPtr m_parser;
 	LinkerPtr m_linker;
+	ParserPtr m_parser;
+	FileManagerPtr m_fileManager;
 };
 
 } // namespace compiler

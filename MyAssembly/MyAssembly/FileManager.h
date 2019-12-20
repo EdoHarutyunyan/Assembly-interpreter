@@ -4,7 +4,10 @@
 #include <string>
 #include <fstream>
 
+namespace parsedfile
+{
 class ParsedFile;
+}
 
 namespace filemanager
 {
@@ -18,7 +21,7 @@ public:
 	std::vector<std::string> ReadFromFile(const std::string& path);
 	void WriteToFile(const std::string& path, const std::vector<std::string>& lines);
 	
-	void ToBynary(const ParsedFile& parsedResult);
+	void ToBynary(const parsedfile::ParsedFile& parsedResult);
 
 	std::vector<std::string> GetPaths() const;
 	std::string GetBynaryFilePath() const;

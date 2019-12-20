@@ -1,12 +1,11 @@
-#include "Type.h"
-
+#include "ParsedFile.h"
 #include <string>
 #include <sstream>
 
-namespace type
+namespace parsedfile
 {
 
-std::unordered_map<std::string, size_t> symbol_table;
+SymbolTables symbol_tables;
 
 std::map<std::string, size_t> type_map = {
 	{ "CHAR", 0 },
@@ -16,7 +15,7 @@ std::map<std::string, size_t> type_map = {
 	{ "QWORD", 4 }
 };
 
-void UpdateSymbolsTable(const std::string& identifier, const size_t offset)
+void UpdateSymbolsTable(const std::string& identifier, const int offset, const size_t tableNumber)
 {
 	std::stringstream ss;
 	char firstSimbol;
@@ -54,7 +53,7 @@ void UpdateSymbolsTable(const std::string& identifier, const size_t offset)
 		}
 	}
 
-	symbol_table[identifier] = offset;
+	symbol_tables[tableNumber][identifier] = offset;
 }
 
 Type to_enum(const size_t t)
@@ -73,4 +72,4 @@ char to_char(const std::string& from)
 	return to;
 }
 
-}// namespace type
+} // namespace parsedFile

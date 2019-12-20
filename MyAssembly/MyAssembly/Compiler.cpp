@@ -4,11 +4,12 @@
 
 namespace compiler
 {
+using namespace parsedfile;
 
 Compiler::Compiler(std::vector<std::string>&& paths)
-	: m_fileManager(std::make_unique<filemanager::FileManager>(std::forward<std::vector<std::string>>(paths)))
-	, m_parser(std::make_shared<parser::Parser>())
-	, m_linker(nullptr)
+	: m_linker(nullptr)
+	, m_parser(std::make_shared<parser::Parser>(paths.size()))
+	, m_fileManager(std::make_unique<filemanager::FileManager>(std::forward<std::vector<std::string>>(paths)))
 {
 }
 

@@ -1,5 +1,4 @@
 #include "Parser.h"
-#include "Type.h"
 #include "Command.h"
 
 #include <iostream>
@@ -12,10 +11,16 @@
 namespace parser
 {
 
-size_t Parser::m_indexOfParsingFile = 0u;
-
-using namespace type;
+using namespace parsedfile;
 	
+Parser::Parser(const size_t& parsingFilesCount)
+	: m_offsets(parsingFilesCount)
+	, m_parsedFiles(parsingFilesCount)
+	, m_funcDefinitionMaps(parsingFilesCount)
+	, m_indexOfParsingFile(0u)
+{
+}
+
 void Parser::Start(const std::vector<std::string>& file)
 {
 	IsStackSize stackSizeSegment;
@@ -24,7 +29,7 @@ void Parser::Start(const std::vector<std::string>& file)
 	IsEntryPoint entryPointSegment;
 
 	DevideIntoParts(file, stackSizeSegment, dataSegment, codeSegment, entryPointSegment);
-	
+
 	if (std::get<0>(stackSizeSegment))
 	{
 		StackSizeParser(std::get<1>(stackSizeSegment));
@@ -59,7 +64,7 @@ void Parser::DataParser(const std::vector<std::string>& dataSegment)
 	for (size_t i = 0; i < dataSegment.size(); ++i)
 	{
 		split(dataSegment[i], tokens);
-		WriteDataToDataStorage(tokens);
+		WriteDataToDataStorage(std::move(tokens));
 		tokens.clear();
 	}
 	
@@ -84,6 +89,11 @@ ParsedFiles Parser::GetParsedFiles() const
 	return m_parsedFiles;
 }
 
+FuncDefinitionMaps Parser::GetFuncDefinitionMaps() const
+{
+	return m_funcDefinitionMaps;
+}
+
 void Parser::DevideIntoParts(
 	const std::vector<std::string>& file,
 	IsStackSize& stackSize,
@@ -92,25 +102,21 @@ void Parser::DevideIntoParts(
 	IsEntryPoint& entryPoint)
 {
 	size_t breakPoint = 0u;
-	bool dataSegmentExists = false;
-	bool codeSegmentExists = false;
-	bool entryPointExists = false;
+	bool isStackSizeExists = false;
+	bool isDataSegmentExists = false;
+	bool isCodeSegmentExists = false;
+	bool isEntryPointExists = false;
+
 	std::vector<std::string> data;
 	std::vector<std::string> code;
 
-	const size_t stackSizeFound = file[0].find(".STACK");
-	if (stackSizeFound != std::string::npos)
+	if (file[0].find(".STACK") != std::string::npos)
 	{
-		// Size of stack exists
-		stackSize = std::make_tuple(true, file[0]);
+		isStackSizeExists = true;
 		++breakPoint;
 	}
-	else
-	{
-		stackSize = std::make_tuple(false, std::string());
-	}
 
-	for (size_t i = breakPoint; i < file.size(); ++i) // Data partition
+	for (size_t i = breakPoint; i < file.size(); ++i)
 	{
 		if (file[i].empty())
 		{
@@ -118,59 +124,75 @@ void Parser::DevideIntoParts(
 		}
 		if (file[i] == ".DATA")
 		{
-			dataSegmentExists = true;
+			isDataSegmentExists = true;
 			continue;
 		}
 		if (file[i] == ".CODE")
 		{
 			breakPoint = ++i;
-			codeSegmentExists = true;
+			isCodeSegmentExists = true;
 			break;
 		}
-		if (file[i] == ".MAIN") // Code partition doesn't exist
+		if (file[i].find(".MAIN") != std::string::npos)
 		{
-			breakPoint = ++i;
-			entryPointExists = true;
+			isEntryPointExists = true;
 			break;
 		}
-	
+
 		data.push_back(file[i]);
 	}
-	
-	dataSegment = std::make_tuple(dataSegmentExists, data);
 
-	for (size_t i = breakPoint; i < file.size(); ++i) // Code partition
+	for (size_t i = breakPoint; i < file.size(); ++i)
 	{
 		if (file[i].empty())
 		{
 			continue;
 		}
-		if (file[i] == ".MAIN")
+		if (file[i].find(".MAIN") != std::string::npos)
 		{
-			entryPointExists = true;
+			isEntryPointExists = true;
 			break;
 		}
+
 		code.push_back(file[i]);
 	}
 
-	codeSegment = std::make_tuple(codeSegmentExists, code);
-	
-	entryPoint = std::make_tuple(entryPointExists, file.back()); // The first instruction
+	stackSize = std::make_tuple(isStackSizeExists, file.front());
+	dataSegment = std::make_tuple(isDataSegmentExists, data);
+	codeSegment = std::make_tuple(isCodeSegmentExists, code);
+	entryPoint = std::make_tuple(isEntryPointExists, file.back());
 }
 	
-void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
+void Parser::WriteDataToDataStorage(std::vector<std::string>&& tokens)
 {
-	std::vector<std::string> numInitList;
-	
-	const size_t offsetFactor = DetermineOffsetSize(tokens, numInitList);
-	
-	// name -> offset
-	UpdateSymbolsTable(tokens[1], m_offsets[m_indexOfParsingFile]);
-	
+	std::vector<std::string> initialValue;
+	bool isForwardDeclaration = false;
+
+	const size_t offsetFactor = DetermineOffsetSize(tokens, initialValue);
+
+	if (tokens[1].back() == ';')
+	{
+		isForwardDeclaration = true;
+	}
+	else
+	{
+		// name -> offset
+		UpdateSymbolsTable(tokens[1], m_offsets[m_indexOfParsingFile], m_indexOfParsingFile);
+	}
+
 	switch (type_map[tokens[0]])
 	{
 	case Type::CHAR:
 	{
+		if (isForwardDeclaration)
+		{
+			tokens[1].pop_back();
+
+			// name -> -1
+			UpdateSymbolsTable(tokens[1], -1, m_indexOfParsingFile);
+			m_offsets[m_indexOfParsingFile] += sizeof(byte);
+		}
+
 		if (tokens.size() > 2) // if given initial value
 		{
 			std::string initialString = tokens[3].substr(1, tokens[3].length() - 2); // delete '' or ""
@@ -195,17 +217,27 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 	case Type::BYTE:
 	{
-		//initialize by given value
-		for (size_t i = 0; i < numInitList.size(); ++i)
+		if (isForwardDeclaration)
+		{
+			tokens[1].pop_back();
+
+			// name -> -1
+			UpdateSymbolsTable(tokens[1], -1, m_indexOfParsingFile);
+			m_offsets[m_indexOfParsingFile] += sizeof(byte);
+			break;
+		}
+
+		// initialize by given value
+		for (size_t i = 0; i < initialValue.size(); ++i)
 		{
 			byte* b = &m_parsedFiles[m_indexOfParsingFile].m_dataStorage[m_offsets[m_indexOfParsingFile]];
-			*b = std::atoi(numInitList[i].c_str());
+			*b = std::atoi(initialValue[i].c_str());
 			m_offsets[m_indexOfParsingFile] += sizeof(byte);
 		}
 	
-		size_t defaultValuesCount = offsetFactor - numInitList.size();
+		size_t defaultValuesCount = offsetFactor - initialValue.size();
 	
-		//initialize by default value
+		// initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
 			byte* b = &m_parsedFiles[m_indexOfParsingFile].m_dataStorage[m_offsets[m_indexOfParsingFile]];
@@ -217,17 +249,27 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 	case Type::WORD:
 	{
-		//initialize by given value
-		for (size_t i = 0; i < numInitList.size(); ++i)
+		if (isForwardDeclaration)
+		{
+			tokens[1].pop_back();
+
+			// name -> -1
+			UpdateSymbolsTable(tokens[1], -1, m_indexOfParsingFile);
+			m_offsets[m_indexOfParsingFile] += sizeof(word);
+			break;
+		}
+
+		// initialize by given value
+		for (size_t i = 0; i < initialValue.size(); ++i)
 		{
 			word* w = reinterpret_cast<word*>(&m_parsedFiles[m_indexOfParsingFile].m_dataStorage[m_offsets[m_indexOfParsingFile]]);
-			*w = std::atoi(numInitList[i].c_str());
+			*w = std::atoi(initialValue[i].c_str());
 			m_offsets[m_indexOfParsingFile] += sizeof(word);
 		}
 	
-		size_t defaultValuesCount = offsetFactor - numInitList.size();
+		size_t defaultValuesCount = offsetFactor - initialValue.size();
 	
-		//initialize by default value
+		// initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
 			word* w = reinterpret_cast<word*>(&m_parsedFiles[m_indexOfParsingFile].m_dataStorage[m_offsets[m_indexOfParsingFile]]);
@@ -239,17 +281,27 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 	case Type::DWORD:
 	{
-		//initialize by given value
-		for (size_t i = 0; i < numInitList.size(); ++i)
+		if (isForwardDeclaration)
+		{
+			tokens[1].pop_back();
+
+			// name -> -1
+			UpdateSymbolsTable(tokens[1], -1, m_indexOfParsingFile);
+			m_offsets[m_indexOfParsingFile] += sizeof(dword);
+			break;
+		}
+
+		// initialize by given value
+		for (size_t i = 0; i < initialValue.size(); ++i)
 		{
 			dword* d = reinterpret_cast<dword*>(&m_parsedFiles[m_indexOfParsingFile].m_dataStorage[m_offsets[m_indexOfParsingFile]]);
-			*d = std::atoi(numInitList[i].c_str());
+			*d = std::atoi(initialValue[i].c_str());
 			m_offsets[m_indexOfParsingFile] += sizeof(dword);
 		}
 	
-		size_t defaultValuesCount = offsetFactor - numInitList.size();
+		size_t defaultValuesCount = offsetFactor - initialValue.size();
 	
-		//initialize by default value
+		// initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
 			dword* d = reinterpret_cast<dword*>(&m_parsedFiles[m_indexOfParsingFile].m_dataStorage[m_offsets[m_indexOfParsingFile]]);
@@ -261,17 +313,27 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 	case Type::QWORD:
 	{
-		//initialize by given value
-		for (size_t i = 0; i < numInitList.size(); ++i)
+		if (isForwardDeclaration)
+		{
+			tokens[1].pop_back();
+
+			// name -> -1
+			UpdateSymbolsTable(tokens[1], -1, m_indexOfParsingFile);
+			m_offsets[m_indexOfParsingFile] += sizeof(qword);
+			break;
+		}
+
+		// initialize by given value
+		for (size_t i = 0; i < initialValue.size(); ++i)
 		{
 			qword* q = reinterpret_cast<qword*>(&m_parsedFiles[m_indexOfParsingFile].m_dataStorage[m_offsets[m_indexOfParsingFile]]);
-			*q = std::atoi(numInitList[i].c_str());
+			*q = std::atoi(initialValue[i].c_str());
 			m_offsets[m_indexOfParsingFile] += sizeof(qword);
 		}
 	
-		size_t defaultValuesCount = offsetFactor - numInitList.size();
+		size_t defaultValuesCount = offsetFactor - initialValue.size();
 			
-		//initialize by default value
+		// initialize by default value
 		for (size_t i = 0; i < defaultValuesCount; ++i)
 		{
 			qword* q = reinterpret_cast<qword*>(&m_parsedFiles[m_indexOfParsingFile].m_dataStorage[m_offsets[m_indexOfParsingFile]]);
@@ -286,14 +348,14 @@ void Parser::WriteDataToDataStorage(const std::vector<std::string>& tokens)
 	}
 }
 	
-size_t Parser::DetermineOffsetSize(const std::vector<std::string>& tokens, std::vector<std::string>& numInitList)
+size_t Parser::DetermineOffsetSize(const std::vector<std::string>& tokens, std::vector<std::string>& initialValue)
 {
 	const size_t pos = tokens[1].find('[');
 	size_t offsetFactor = 1;
 	
-	if (tokens.size() > 2 && type_map[tokens[0]] != CHAR)// if given initial value
+	if (tokens.size() > 2 && type_map[tokens[0]] != CHAR) // if given initial value
 	{
-		numInitList = InitialValueSplit(tokens[3]);
+		initialValue = InitialValueSplit(tokens[3]);
 	}
 	
 	if (pos < tokens[1].size())
@@ -307,11 +369,10 @@ size_t Parser::DetermineOffsetSize(const std::vector<std::string>& tokens, std::
 		else
 		{
 			offsetFactor = type_map[tokens[0]] == CHAR ?
-				tokens.at(3).length() - 2 : numInitList.size();
+				tokens.at(3).length() - 2 : initialValue.size();
 		}
 	}
 	
-	// return array size
 	return offsetFactor;
 }
 	
@@ -320,16 +381,12 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 	using namespace command;
 	
 	std::vector<std::string> tokens;
-	
-	std::map<std::string, size_t> commandMap;
-	mapInit(commandMap);
-	
-	std::set<std::string /*name*/> funcDeclaration;
-	std::unordered_map<std::string /*name*/, size_t /*index*/> funcDefinition;
-	
+	//std::set<std::string /*name*/> funcDeclaration;
 	std::map<std::string /*labelName*/, size_t /*index*/> labels;
-	
-	size_t instructionIndex = 0;
+	std::map<std::string /*commandName*/, size_t /*index*/> commandMap;
+	mapInit(commandMap);
+
+	size_t instructionIndex = 0u;
 	
 	for (size_t i = 0; i < codeSegment.size(); ++i)
 	{
@@ -340,7 +397,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 			if (tokens[1].back() == ';') // forward declaration
 			{
 				tokens[1].pop_back();
-				funcDeclaration.insert(tokens[1]);
+				symbol_tables[m_indexOfParsingFile].insert({ tokens[1], -1 });
 			}
 			else if (tokens[1].back() == ':') // definition
 			{
@@ -348,41 +405,41 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 	
 				if (def_it != m_funcDefinitionMaps[m_indexOfParsingFile].end())
 				{
-					throw std::invalid_argument(tokens[1] + "redefinition");
+					throw std::invalid_argument(tokens[1] + "redefinition.");
 				}
 				else
 				{
 					tokens[1].pop_back();
-					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], i + 1 + m_parsedFiles[m_indexOfParsingFile].m_dataStorage.size() });
+					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], i });
 				}
 			}
 			else
 			{
-				auto dec_it = funcDeclaration.find(tokens[1]);
+				auto dec_it = symbol_tables[m_indexOfParsingFile].find(tokens[1]);
 				auto def_it = m_funcDefinitionMaps[m_indexOfParsingFile].find(tokens[1]);
 	
-				if (dec_it == funcDeclaration.end())
+				if (dec_it == symbol_tables[m_indexOfParsingFile].end())
 				{
-					throw std::invalid_argument("Identifier " + tokens[1] + " is undefined");
+					throw std::invalid_argument("Identifier " + tokens[1] + " is undefined.");
 				}
 				else if (def_it != m_funcDefinitionMaps[m_indexOfParsingFile].end())
 				{
-					throw std::invalid_argument(tokens[1] + "redefinition");
+					throw std::invalid_argument(tokens[1] + "redefinition.");
 				}
 				else
 				{
-					m_parsedFiles[m_indexOfParsingFile].m_instruction[def_it->second].SetROper(i);
+					//m_parsedFiles[m_indexOfParsingFile].m_instruction[def_it->second].SetROper(i); 
 	
 					tokens[1].pop_back();
-					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], i + 1 + m_parsedFiles[m_indexOfParsingFile].m_dataStorage.size() });
+					m_funcDefinitionMaps[m_indexOfParsingFile].insert({ tokens[1], i });
 				}
 			}
 			tokens.clear();
 			continue;
 		}
 	
-		char lastChar = tokens[0].at(tokens[0].length() - 1);
-		if (lastChar == ':') // Is Label
+		char lastChar = tokens[0].back();
+		if (lastChar == ':') // is Label
 		{
 			auto it = labels.find(tokens[0]);
 			if (it != labels.end())
@@ -397,7 +454,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 			continue;
 		}
 	
-		switch (commandMap[tokens[0]]) // Is Command
+		switch (commandMap[tokens[0]]) // is Command
 		{
 		//case commandKeys::eNOP:
 		//{
@@ -419,7 +476,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		case commandKeys::eJUMP:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eJUMP));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eCALL:
@@ -447,13 +504,13 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		case commandKeys::eLOAD:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eLOAD));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eSTORE:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eSTORE));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		//case commandKeys::eLDREL:
@@ -489,7 +546,7 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		case commandKeys::eASSIGN:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eASSIGN));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		//case commandKeys::eSET:
@@ -633,49 +690,49 @@ void Parser::CodeParser(const std::vector<std::string>& codeSegment)
 		case commandKeys::eADD:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eADD));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eADC:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eADC));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eSUB:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eSUB));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eSBB:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eSBB));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, m_funcDefinitionMaps[m_indexOfParsingFile]);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eMUL:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eMUL));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eIMUL:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eIMUL));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eDIV:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eDIV));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		case commandKeys::eIDIV:
 		{
 			m_parsedFiles[m_indexOfParsingFile].m_instruction.push_back(code::Code(eIDIV));
-			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, funcDeclaration, funcDefinition);
+			m_parsedFiles[m_indexOfParsingFile].m_instruction.back().SourceCodeGenerator(tokens, m_funcDefinitionMaps[m_indexOfParsingFile], m_indexOfParsingFile);
 			break;
 		}
 		//case commandKeys::eNEG:

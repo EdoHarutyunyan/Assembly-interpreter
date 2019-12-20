@@ -127,10 +127,10 @@
     <ClCompile Include="Linker.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory.cpp" />
+    <ClCompile Include="ParsedFile.cpp" />
     <ClCompile Include="Parser.cpp" />
     <ClCompile Include="Processor.cpp" />
     <ClCompile Include="StatusRegisters.cpp" />
-    <ClCompile Include="Type.cpp" />
     <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -150,7 +150,6 @@
     <ClInclude Include="Processor.h" />
     <ClInclude Include="DataRegisters.h" />
     <ClInclude Include="StatusRegisters.h" />
-    <ClInclude Include="Type.h" />
     <ClInclude Include="VM.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

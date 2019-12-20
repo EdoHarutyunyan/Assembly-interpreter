@@ -1,5 +1,5 @@
 #include "Code.h"
-#include "Type.h"
+#include "ParsedFile.h"
 
 #include <sstream>
 #include <cassert>
@@ -24,22 +24,22 @@ Code::Code(const size_t opcode, const std::string& reg)
 	m_lOper = RegInit(reg);
 }
 
-void Code::SourceCodeGenerator(const std::vector<std::string>& tokens, std::set<std::string>& funcDeclaration,
-	std::unordered_map<std::string, size_t>& funcDefinition)
+void Code::SourceCodeGenerator(const std::vector<std::string>& tokens, 
+	std::unordered_map<std::string, size_t>& funcDefinition, const size_t indexOfParsingFile)
 {
 	if (SetExtension(tokens[1]))
 	{
 		assert(tokens.size() == 4);
 		
 		SetLOper(tokens[2]);
-		SetROper(tokens[3], funcDeclaration, funcDefinition);
+		SetROper(tokens[3], funcDefinition, indexOfParsingFile);
 	}
 	else // if not given extension, the default is exactly DW
 	{
 		assert(tokens.size() == 3);
 		
 		SetLOper(tokens[1]);
-		SetROper(tokens[2], funcDeclaration, funcDefinition);
+		SetROper(tokens[2], funcDefinition, indexOfParsingFile);
 	}
 }
 
@@ -74,31 +74,20 @@ void Code::SetLOper(const std::string& lOper, std::map<std::string, size_t>& lab
 	}
 }
 
-void Code::SetROper(const std::string& rOp, std::set<std::string>& funcDeclaration,
-	std::unordered_map<std::string, size_t>& funcDefinition)
+void Code::SetROper(const std::string& rOp,
+	std::unordered_map<std::string, size_t>& funcDefinition,
+	const size_t indexOfParsingFile)
 {
-	auto table_it = type::symbol_table.find(rOp);
-	auto dec_it = funcDeclaration.find(rOp);
+	auto table_it = parsedfile::symbol_tables[indexOfParsingFile].find(rOp);
 	auto def_it = funcDefinition.find(rOp);
 
-	if ((table_it != type::symbol_table.end()
-		&& dec_it != funcDeclaration.end())
-	 || (table_it != type::symbol_table.end()
-		&& def_it != funcDefinition.end()))
-	{
-		throw std::invalid_argument(rOp + ": redefinition");
-	}
-	if (table_it != type::symbol_table.end())
+	if (table_it != parsedfile::symbol_tables[indexOfParsingFile].end())
 	{
 		m_rOper = table_it->second;
 	}
 	else if (def_it != funcDefinition.end())
 	{
 		m_rOper = def_it->second;
-	}
-	else if (dec_it != funcDeclaration.end())
-	{
-		funcDefinition.insert({ rOp, -1 });
 	}
 	else
 	{

@@ -1,19 +1,20 @@
 .DATA
-BYTE x = 5
-BYTE b = 10
-BYTE sas[10] = 75,87,200,17
-QWORD q
-CHAR str1[] = HELLO WORLD
-CHAR c = 's'
-BYTE a = 0x27
+BYTE x2 = 5
+BYTE b2 = 10
+BYTE x1;
+BYTE sas2[10] = 75,87,200,17
+QWORD q2
+CHAR str12[] = "HELLO WORLD"
+CHAR c2 = 's'
+BYTE a2 = 0x27
 
 .CODE
 Func Print2;
 Func Check2;
 
-Func Start
-    ASSIGN BYTE A4 x
-    ASSIGN BYTE A6 b
+Func Start2:
+    ASSIGN BYTE A4 x1
+    ASSIGN BYTE A6 b2
     ASSIGN BYTE A5 Print2
     LOAD BYTE R0 A4
     LOAD BYTE R8 A6

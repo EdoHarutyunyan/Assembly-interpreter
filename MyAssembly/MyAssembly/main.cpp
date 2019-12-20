@@ -4,7 +4,7 @@
 int main()
 try
 {
-	std::vector<std::string> paths{ "assembly.txt", "assembly2.txt" };
+	std::vector<std::string> paths{ "assembly1.txt", "assembly2.txt" };
 	manager::ExecutionManager em(std::move(paths));
 	em.Start();
 

@@ -11,7 +11,7 @@ ExecutionManager::ExecutionManager(std::vector<std::string>&& paths)
 
 void ExecutionManager::Start()
 {
-	//m_compiler->Start();
+	m_compiler->Start();
 
 	m_interpreter = std::make_unique<interpreter::Interpreter>();
 }
