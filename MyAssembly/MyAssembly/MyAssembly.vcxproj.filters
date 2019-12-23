@@ -1,117 +1,136 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Interpreter">
+      <UniqueIdentifier>{11739f18-4a21-4b86-9cbd-162ed4340595}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="Compiler">
+      <UniqueIdentifier>{a395ddbd-48a4-4b1b-b932-c9865581ae7e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="App">
+      <UniqueIdentifier>{6a76ded0-5b58-455b-b5c4-410742c6f95f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{3f51d996-8884-4cf5-aa6e-96febfe3a527}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Files">
+      <UniqueIdentifier>{72a2bd0b-a15b-49fc-82d2-136dcb94c571}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interpreter\Registers">
+      <UniqueIdentifier>{eb0d58bb-4cf4-46d9-801a-2f5ff90a3d26}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Compiler\Compiler.cpp">
+      <Filter>Compiler</Filter>
     </ClCompile>
-    <ClCompile Include="Interpreter.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Compiler\Code.cpp">
+      <Filter>Compiler</Filter>
     </ClCompile>
-    <ClCompile Include="VM.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Compiler\FileManager.cpp">
+      <Filter>Compiler</Filter>
     </ClCompile>
-    <ClCompile Include="Processor.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Compiler\Linker.cpp">
+      <Filter>Compiler</Filter>
     </ClCompile>
-    <ClCompile Include="Memory.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Compiler\ParsedFile.cpp">
+      <Filter>Compiler</Filter>
     </ClCompile>
-    <ClCompile Include="CPU.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Compiler\Parser.cpp">
+      <Filter>Compiler</Filter>
     </ClCompile>
-    <ClCompile Include="Command.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Interpreter\CPU.cpp">
+      <Filter>Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="Compiler.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Interpreter\Interpreter.cpp">
+      <Filter>Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="FileManager.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Interpreter\Memory.cpp">
+      <Filter>Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="Parser.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Interpreter\Processor.cpp">
+      <Filter>Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="Code.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Interpreter\VM.cpp">
+      <Filter>Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="ExecutionManager.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="src\Command.cpp">
+      <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="StatusRegisters.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="App\ExecutionManager.cpp">
+      <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="Linker.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="App\main.cpp">
+      <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="ParsedFile.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Interpreter\Registers\StatusRegisters.cpp">
+      <Filter>Interpreter\Registers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Interpreter.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Compiler\Compiler.h">
+      <Filter>Compiler</Filter>
     </ClInclude>
-    <ClInclude Include="VM.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Compiler\Code.h">
+      <Filter>Compiler</Filter>
     </ClInclude>
-    <ClInclude Include="Processor.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Compiler\FileManager.h">
+      <Filter>Compiler</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Compiler\Linker.h">
+      <Filter>Compiler</Filter>
     </ClInclude>
-    <ClInclude Include="CPU.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Compiler\ParsedFile.h">
+      <Filter>Compiler</Filter>
     </ClInclude>
-    <ClInclude Include="decl.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Compiler\Parser.h">
+      <Filter>Compiler</Filter>
     </ClInclude>
-    <ClInclude Include="DataRegisters.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Interpreter\CPU.h">
+      <Filter>Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="AddressRegisters.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Interpreter\Interpreter.h">
+      <Filter>Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="StatusRegisters.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Interpreter\Memory.h">
+      <Filter>Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="Command.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Interpreter\Processor.h">
+      <Filter>Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="Compiler.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Interpreter\VM.h">
+      <Filter>Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="FileManager.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\Command.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="Code.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="src\decl.h">
+      <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="Parser.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="App\ExecutionManager.h">
+      <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="ExecutionManager.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Interpreter\Registers\AddressRegisters.h">
+      <Filter>Interpreter\Registers</Filter>
     </ClInclude>
-    <ClInclude Include="ParsedFile.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Interpreter\Registers\DataRegisters.h">
+      <Filter>Interpreter\Registers</Filter>
     </ClInclude>
-    <ClInclude Include="Linker.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Interpreter\Registers\StatusRegisters.h">
+      <Filter>Interpreter\Registers</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Files\assembly1.txt">
+      <Filter>Files</Filter>
+    </Text>
+    <Text Include="Files\assembly2.txt">
+      <Filter>Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\BynaryFile.bin">
+      <Filter>Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

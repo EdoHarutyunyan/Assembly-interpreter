@@ -1,0 +1,45 @@
+.STACK = 1024
+
+.DATA
+BYTE x1 = 3
+BYTE b1 = 20
+DWORD sas1[10] = 45,87,200,15
+QWORD q1
+CHAR str11[] = "HELLO WORLD"
+CHAR c1 = 's'
+BYTE a1 = 0x27
+
+.CODE
+Func Print1;
+Func Check2;
+Func func1;
+
+Func Start1:
+    ASSIGN BYTE A4 x1
+    ASSIGN BYTE A6 b1
+    ASSIGN BYTE A5 Print1
+    LOAD BYTE R0 A4
+    JUMP label
+    LOAD BYTE R8 A6
+    ASSIGN BYTE A0 Check2
+    ADD BYTE R0 R8
+    STORE BYTE R0 A4
+
+    CALL A5
+    RET
+END
+
+Func Print1
+    RET
+
+Func func1
+    RET
+
+label: 
+    LOAD BYTE R8 A6
+    ADD BYTE R0 R8
+    STORE BYTE R0 A4 
+
+    RET
+
+.MAIN = Start1

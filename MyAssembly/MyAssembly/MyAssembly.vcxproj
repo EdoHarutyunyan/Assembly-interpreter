@@ -117,40 +117,47 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Code.cpp" />
-    <ClCompile Include="Command.cpp" />
-    <ClCompile Include="Compiler.cpp" />
-    <ClCompile Include="CPU.cpp" />
-    <ClCompile Include="ExecutionManager.cpp" />
-    <ClCompile Include="FileManager.cpp" />
-    <ClCompile Include="Interpreter.cpp" />
-    <ClCompile Include="Linker.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Memory.cpp" />
-    <ClCompile Include="ParsedFile.cpp" />
-    <ClCompile Include="Parser.cpp" />
-    <ClCompile Include="Processor.cpp" />
-    <ClCompile Include="StatusRegisters.cpp" />
-    <ClCompile Include="VM.cpp" />
+    <ClCompile Include="App\ExecutionManager.cpp" />
+    <ClCompile Include="App\main.cpp" />
+    <ClCompile Include="Compiler\Code.cpp" />
+    <ClCompile Include="Compiler\Compiler.cpp" />
+    <ClCompile Include="Compiler\FileManager.cpp" />
+    <ClCompile Include="Compiler\Linker.cpp" />
+    <ClCompile Include="Compiler\ParsedFile.cpp" />
+    <ClCompile Include="Compiler\Parser.cpp" />
+    <ClCompile Include="Interpreter\CPU.cpp" />
+    <ClCompile Include="Interpreter\Interpreter.cpp" />
+    <ClCompile Include="Interpreter\Memory.cpp" />
+    <ClCompile Include="Interpreter\Processor.cpp" />
+    <ClCompile Include="Interpreter\Registers\StatusRegisters.cpp" />
+    <ClCompile Include="Interpreter\VM.cpp" />
+    <ClCompile Include="src\Command.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AddressRegisters.h" />
-    <ClInclude Include="Code.h" />
-    <ClInclude Include="Command.h" />
-    <ClInclude Include="Compiler.h" />
-    <ClInclude Include="CPU.h" />
-    <ClInclude Include="decl.h" />
-    <ClInclude Include="ExecutionManager.h" />
-    <ClInclude Include="FileManager.h" />
-    <ClInclude Include="Interpreter.h" />
-    <ClInclude Include="Linker.h" />
-    <ClInclude Include="Memory.h" />
-    <ClInclude Include="ParsedFile.h" />
-    <ClInclude Include="Parser.h" />
-    <ClInclude Include="Processor.h" />
-    <ClInclude Include="DataRegisters.h" />
-    <ClInclude Include="StatusRegisters.h" />
-    <ClInclude Include="VM.h" />
+    <ClInclude Include="App\ExecutionManager.h" />
+    <ClInclude Include="Compiler\Code.h" />
+    <ClInclude Include="Compiler\Compiler.h" />
+    <ClInclude Include="Compiler\FileManager.h" />
+    <ClInclude Include="Compiler\Linker.h" />
+    <ClInclude Include="Compiler\ParsedFile.h" />
+    <ClInclude Include="Compiler\Parser.h" />
+    <ClInclude Include="Interpreter\CPU.h" />
+    <ClInclude Include="Interpreter\Interpreter.h" />
+    <ClInclude Include="Interpreter\Memory.h" />
+    <ClInclude Include="Interpreter\Processor.h" />
+    <ClInclude Include="Interpreter\Registers\AddressRegisters.h" />
+    <ClInclude Include="Interpreter\Registers\DataRegisters.h" />
+    <ClInclude Include="Interpreter\Registers\StatusRegisters.h" />
+    <ClInclude Include="Interpreter\VM.h" />
+    <ClInclude Include="src\Command.h" />
+    <ClInclude Include="src\decl.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Files\assembly1.txt" />
+    <Text Include="Files\assembly2.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\BynaryFile.bin" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
